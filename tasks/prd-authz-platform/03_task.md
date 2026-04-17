@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 parallelizable: false
 blocked_by: [1.0]
 ---
@@ -56,13 +56,20 @@ Subir o esqueleto Spring Boot 3 do AuthZ Service com Clean Architecture, configu
 
 ## Subtarefas
 
-- [ ] 3.1 `pom.xml` com BOMs e dependências
-- [ ] 3.2 `AuthzServiceApplication.java` com `@SpringBootApplication`
-- [ ] 3.3 `application.yml` (server, datasource, JPA, management endpoints)
-- [ ] 3.4 `logback-spring.xml` com JSON encoder
-- [ ] 3.5 `OpenApiConfig` com bearer + JWT schemes
-- [ ] 3.6 `Dockerfile` multi-stage
-- [ ] 3.7 Smoke test: `mvn spring-boot:run` com perfil `dev` sobe e `/actuator/health` retorna `UP`
+- [x] 3.1 `pom.xml` com BOMs e dependências
+- [x] 3.2 `AuthzServiceApplication.java` com `@SpringBootApplication`
+- [x] 3.3 `application.yml` (server, datasource, JPA, management endpoints)
+- [x] 3.4 `logback-spring.xml` com JSON encoder
+- [x] 3.5 `OpenApiConfig` com bearer + JWT schemes
+- [x] 3.6 `Dockerfile` multi-stage
+- [x] 3.7 Smoke test: `mvn spring-boot:run` com perfil `dev` sobe e `/actuator/health` retorna `UP`
+
+- [x] 3.0 AuthZ Service — bootstrap Spring Boot e configurações base ✅ CONCLUÍDA
+  - [x] 3.1 Implementação completada
+  - [x] 3.2 Definição da tarefa, PRD e tech spec validados
+  - [x] 3.3 Análise de regras e conformidade verificadas
+  - [x] 3.4 Revisão de código completada
+  - [x] 3.5 Pronto para deploy
 
 ## Sequenciamento
 
@@ -114,8 +121,8 @@ management:
 
 ## Critérios de Sucesso (Verificáveis)
 
-- [ ] `mvn -pl apps/authz-service compile` ok
-- [ ] `mvn -pl apps/authz-service test` ok (sem testes ainda, mas plumbing funciona)
-- [ ] `docker build apps/authz-service` produz imagem
-- [ ] Sobe via `docker-compose up authz-service` e `/actuator/health` retorna `{"status":"UP"}`
-- [ ] `/v3/api-docs` retorna JSON OpenAPI válido
+- [x] `mvn -pl apps/authz-service compile` ok
+- [x] `mvn -pl apps/authz-service test` ok (sem testes ainda, mas plumbing funciona)
+- [x] `docker build apps/authz-service` produz imagem
+- [x] Sobe via `docker-compose up authz-service` e `/actuator/health` retorna `{"status":"UP"}`
+- [x] `/v3/api-docs` retorna JSON OpenAPI válido

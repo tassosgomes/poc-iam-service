@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 parallelizable: false
 blocked_by: [3.0]
 ---
@@ -13,7 +13,7 @@ blocked_by: [3.0]
 <unblocks>"5.0"</unblocks>
 </task_context>
 
-# Tarefa 4.0: AuthZ Service — schema Postgres e migrations Flyway
+# Tarefa 4.0: AuthZ Service — schema Postgres e migrations Flyway ✅ CONCLUÍDA
 
 ## Relacionada às User Stories
 
@@ -42,10 +42,10 @@ Criar todas as tabelas do AuthZ Service via migration Flyway `V1__init_schema.sq
 
 ## Subtarefas
 
-- [ ] 4.1 Escrever V1 com todas as tabelas + FKs + checks de status
-- [ ] 4.2 Escrever V2 seed (UUIDs fixos para `platform` e `user-admin`)
-- [ ] 4.3 Subir `authz-service` e validar Flyway aplica migrations sem erro
-- [ ] 4.4 Validar via `psql` que as tabelas + dados de seed existem
+- [x] 4.1 Escrever V1 com todas as tabelas + FKs + checks de status
+- [x] 4.2 Escrever V2 seed (UUIDs fixos para `platform` e `user-admin`)
+- [x] 4.3 Subir `authz-service` e validar Flyway aplica migrations sem erro
+- [x] 4.4 Validar via `psql` que as tabelas + dados de seed existem
 
 ## Sequenciamento
 
@@ -76,7 +76,16 @@ Criar todas as tabelas do AuthZ Service via migration Flyway `V1__init_schema.sq
 
 ## Critérios de Sucesso (Verificáveis)
 
-- [ ] `mvn -pl apps/authz-service spring-boot:run` aplica V1 e V2 (verificar via logs Flyway)
-- [ ] `psql -c "SELECT version FROM flyway_schema_history"` mostra `1` e `2`
-- [ ] `psql -c "SELECT name FROM module WHERE name='platform'"` retorna 1 linha
-- [ ] `psql -c "SELECT user_id FROM user_role WHERE user_id='user-admin'"` retorna 1 linha
+- [x] `mvn -pl apps/authz-service spring-boot:run` aplica V1 e V2 (verificar via logs Flyway)
+- [x] `psql -c "SELECT version FROM flyway_schema_history"` mostra `1` e `2`
+- [x] `psql -c "SELECT name FROM module WHERE name='platform'"` retorna 1 linha
+- [x] `psql -c "SELECT user_id FROM user_role WHERE user_id='user-admin'"` retorna 1 linha
+
+## Conclusão
+
+- [x] 4.0 AuthZ Service — schema Postgres e migrations Flyway ✅ CONCLUÍDA
+  - [x] 4.1 Implementação completada
+  - [x] 4.2 Definição da tarefa, PRD e tech spec validados
+  - [x] 4.3 Análise de regras e conformidade verificadas
+  - [x] 4.4 Revisão de código completada
+  - [x] 4.5 Pronto para deploy

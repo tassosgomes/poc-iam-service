@@ -69,33 +69,34 @@ services:
   # ========================================
   # AuthZ Service (Backend - Java/Spring Boot)
   # ========================================
-  # authz-service:
-  #   build:
-  #     context: ../../apps/authz-service
-  #     dockerfile: Dockerfile
-  #   container_name: authz-service
-  #   environment:
-  #     SPRING_PROFILES_ACTIVE: dev
-  #     SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/authz
-  #     SPRING_DATASOURCE_USERNAME: authz
-  #     SPRING_DATASOURCE_PASSWORD: ${AUTHZ_DB_PASS:-authz}
-  #     SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://cyberark-mock:8080/default
-  #     AUTHZ_CYBERARK_BASE_URL: http://cyberark-mock:8080
-  #   ports:
-  #     - "8081:8081"
-  #   depends_on:
-  #     postgres:
-  #       condition: service_healthy
-  #     cyberark-mock:
-  #       condition: service_healthy
-  #   healthcheck:
-  #     test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/actuator/health/readiness"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 10
-  #     start_period: 60s
-  #   networks:
-  #     - authz-network
+  authz-service:
+    build:
+      context: ../../apps/authz-service
+      dockerfile: Dockerfile
+    container_name: authz-service
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      SERVER_PORT: 8081
+      AUTHZ_DB_URL: jdbc:postgresql://postgres:5432/authz
+      AUTHZ_DB_USER: authz
+      AUTHZ_DB_PASS: ${AUTHZ_DB_PASS:-authz}
+      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://cyberark-mock:8080/default
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+    ports:
+      - "18081:8081"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      cyberark-mock:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8081/actuator/health/readiness"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+    networks:
+      - authz-network
 
   # ========================================
   # App Shell (React Host MFE)
