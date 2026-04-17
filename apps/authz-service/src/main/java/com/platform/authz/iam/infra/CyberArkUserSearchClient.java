@@ -46,6 +46,20 @@ public class CyberArkUserSearchClient implements UserSearchPort {
     public List<UserSummary> searchUsers(String query, String moduleFilter) {
         Objects.requireNonNull(query, "query must not be null");
 
+        return executeSearchUsers(query, moduleFilter);
+    }
+
+    @Override
+    @CircuitBreaker(name = "cyberark", fallbackMethod = "userExistsFallback")
+    @Retry(name = "cyberark")
+    public boolean userExists(String userId) {
+        Objects.requireNonNull(userId, "userId must not be null");
+
+        return executeSearchUsers(userId, null).stream()
+                .anyMatch(user -> userId.equals(user.userId()));
+    }
+
+    private List<UserSummary> executeSearchUsers(String query, String moduleFilter) {
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/search")
@@ -66,6 +80,12 @@ public class CyberArkUserSearchClient implements UserSearchPort {
                 moduleFilter != null ? moduleFilter : "none",
                 exception.getClass().getSimpleName()
         );
+        throw new CyberArkUnavailableException("CyberArk user search service is unavailable", exception);
+    }
+
+    @SuppressWarnings("unused")
+    private boolean userExistsFallback(String userId, Throwable exception) {
+        LOGGER.warn("cyberark_user_exists_fallback reason={}", exception.getClass().getSimpleName());
         throw new CyberArkUnavailableException("CyberArk user search service is unavailable", exception);
     }
 }

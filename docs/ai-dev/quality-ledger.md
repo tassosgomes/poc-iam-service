@@ -20,6 +20,72 @@ Sugestão de melhoria no:
 - Template de Task: Nenhuma.
 - Skill: Nenhuma.
 
+## [2026-04-17] | PRD: prd-authz-platform | Task: 10.0
+
+Modelo utilizado:
+GPT-5.4
+
+### Problemas Identificados
+
+1. Categoria Técnica: Lógica incorreta
+   Severidade: Alta
+   Fase Detectada: Revisão
+   Origem Provável: Limitação do modelo
+   Necessitou Reimplementação Significativa? Não
+   Descrição: A idempotência de atribuição depende apenas de leitura prévia em `AssignRoleHandler` (`findActiveByUserIdAndRoleId(...)` antes de `save(...)`), mas o schema `apps/authz-service/src/main/resources/db/migration/V1__init_schema.sql` não possui índice único parcial para impedir dois `user_role` ativos com o mesmo `(user_id, role_id)`. Em concorrência, a task pode criar assignments duplicados e quebrar RF-06/RF-07.
+
+2. Categoria Técnica: Erro de integração
+   Severidade: Alta
+   Fase Detectada: Revisão
+   Origem Provável: Limitação do modelo
+   Necessitou Reimplementação Significativa? Não
+   Descrição: `CyberArkUserSearchClient.userExists(...)` chama internamente `searchUsers(...)`, contornando o proxy Spring AOP e impedindo a aplicação efetiva de `@CircuitBreaker` e `@Retry`. O fluxo crítico de assign/revoke fica sem a proteção resiliente esperada contra indisponibilidade do CyberArk.
+
+3. Categoria Técnica: Teste inadequado
+   Severidade: Média
+   Fase Detectada: Revisão
+   Origem Provável: Limitação do modelo
+   Necessitou Reimplementação Significativa? Não
+   Descrição: A task pede cobertura explícita dos cenários críticos do módulo IAM, mas não há testes unitários dedicados para `RevokeRoleHandler` nem para `ListUserRolesQuery`, deixando sem validação unitária cenários de revoke sem efeito, user inexistente e filtragem por escopo na listagem.
+
+### Resumo da Tarefa
+
+Total de Problemas: 3
+Categoria Técnica mais frequente: Lógica incorreta
+Origem mais frequente: Limitação do modelo
+Indício de fragilidade estrutural? (Sim/Não) Não
+Sugestão de melhoria no:
+- PRD: Nenhuma.
+- TechSpec: Nenhuma.
+- Template de Task: Explicitar em tasks com requisito de idempotência que a garantia deve existir também no banco para cenários concorrentes.
+- Skill: Incluir checagem explícita de self-invocation que anula AOP (`@Retry`, `@CircuitBreaker`, `@Transactional`) e de idempotência protegida por constraint persistente.
+
+## [2026-04-17] | PRD: prd-authz-platform | Task: 10.0
+
+Modelo utilizado:
+GPT-5.4 + Claude Sonnet 4.6 (subagentes de review/teste)
+
+### Problemas Identificados
+
+1. Categoria Técnica: Problema de segurança
+   Severidade: Média
+   Fase Detectada: Revisão
+   Origem Provável: Limitação do modelo
+   Necessitou Reimplementação Significativa? Não
+   Descrição: Em `apps/authz-service/src/main/java/com/platform/authz/iam/application/AssignRoleHandler.java` e `RevokeRoleHandler.java`, a consulta `userSearchPort.userExists(...)` acontece antes de `adminScopeChecker.requireScope(...)`. Isso permite enumeração de usuários entre módulos porque um manager sem escopo recebe `403` quando o usuário existe e `404` quando não existe.
+
+### Resumo da Tarefa
+
+Total de Problemas: 1
+Categoria Técnica mais frequente: Problema de segurança
+Origem mais frequente: Limitação do modelo
+Indício de fragilidade estrutural? (Sim/Não) Não
+Sugestão de melhoria no:
+- PRD: Nenhuma.
+- TechSpec: Nenhuma.
+- Template de Task: Explicitar que validações de autorização por escopo devem ocorrer antes de qualquer lookup que possa revelar existência de recursos/usuários.
+- Skill: Incluir checagem explícita para evitar user/resource enumeration por diferença entre respostas `403` e `404` em fluxos protegidos por escopo.
+
 ## [2026-04-16] | PRD: prd-authz-platform | Task: 2.0
 
 Modelo utilizado:

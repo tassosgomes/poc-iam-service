@@ -1,12 +1,13 @@
 package com.platform.authz.audit.infra;
 
+import com.platform.authz.audit.application.AuditEventPublisher;
 import com.platform.authz.audit.application.RecordAuditEvent;
 import com.platform.authz.audit.domain.AuditEvent;
 import java.util.Objects;
 import org.springframework.stereotype.Service;
 
 @Service
-public class JpaRecordAuditEvent implements RecordAuditEvent {
+public class JpaRecordAuditEvent implements RecordAuditEvent, AuditEventPublisher {
     private final SpringDataAuditEventRepository springDataAuditEventRepository;
     private final AuditEventEntityMapper auditEventEntityMapper;
 
@@ -26,6 +27,11 @@ public class JpaRecordAuditEvent implements RecordAuditEvent {
 
     @Override
     public void record(AuditEvent event) {
+        publish(event);
+    }
+
+    @Override
+    public void publish(AuditEvent event) {
         springDataAuditEventRepository.save(auditEventEntityMapper.toEntity(event));
     }
 }

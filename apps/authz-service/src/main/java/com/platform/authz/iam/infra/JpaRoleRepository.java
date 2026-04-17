@@ -3,7 +3,9 @@ package com.platform.authz.iam.infra;
 import com.platform.authz.iam.domain.Role;
 import com.platform.authz.iam.domain.RolePage;
 import com.platform.authz.iam.domain.RoleRepository;
+import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -54,6 +56,17 @@ public class JpaRoleRepository implements RoleRepository {
                 rolePage.getContent().stream().map(roleEntityMapper::toDomain).toList(),
                 rolePage.getTotalElements()
         );
+    }
+
+    @Override
+    public List<Role> findByIds(Set<UUID> roleIds) {
+        if (roleIds == null || roleIds.isEmpty()) {
+            return List.of();
+        }
+
+        return springDataRoleRepository.findAllById(roleIds).stream()
+                .map(roleEntityMapper::toDomain)
+                .toList();
     }
 
     @Override

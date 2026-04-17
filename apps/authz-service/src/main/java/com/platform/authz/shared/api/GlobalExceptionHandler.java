@@ -1,11 +1,14 @@
 package com.platform.authz.shared.api;
 
+import com.platform.authz.iam.domain.AdminScopeViolationException;
 import com.platform.authz.iam.domain.InvalidRoleNameException;
 import com.platform.authz.iam.domain.InvalidRolePermissionStatusException;
 import com.platform.authz.iam.domain.PermissionModuleMismatchException;
 import com.platform.authz.iam.domain.RoleConflictException;
 import com.platform.authz.iam.domain.RoleDeletionConflictException;
 import com.platform.authz.iam.domain.RoleNotFoundException;
+import com.platform.authz.iam.domain.UserNotFoundException;
+import com.platform.authz.iam.domain.UserRoleAssignmentConflictException;
 import com.platform.authz.iam.domain.UserSearchAccessDeniedException;
 import com.platform.authz.iam.infra.CyberArkUnavailableException;
 import com.platform.authz.modules.api.PlatformAdminRequiredException;
@@ -54,7 +57,11 @@ public class GlobalExceptionHandler {
         );
     }
 
-    @ExceptionHandler({RoleConflictException.class, RoleDeletionConflictException.class})
+    @ExceptionHandler({
+            RoleConflictException.class,
+            RoleDeletionConflictException.class,
+            UserRoleAssignmentConflictException.class
+    })
     public ResponseEntity<ProblemDetail> handleRoleConflict(RuntimeException exception, HttpServletRequest request) {
         return problemDetailFactory.buildResponse(
                 HttpStatus.CONFLICT,
@@ -65,15 +72,15 @@ public class GlobalExceptionHandler {
         );
     }
 
-    @ExceptionHandler({ModuleNotFoundException.class, RoleNotFoundException.class, EntityNotFoundException.class})
+    @ExceptionHandler({
+            ModuleNotFoundException.class,
+            RoleNotFoundException.class,
+            UserNotFoundException.class,
+            EntityNotFoundException.class
+    })
     public ResponseEntity<ProblemDetail> handleNotFound(RuntimeException exception, HttpServletRequest request) {
-        return problemDetailFactory.buildResponse(
-                HttpStatus.NOT_FOUND,
-                "resource-not-found",
-                "Not Found",
-                exception.getMessage(),
-                request
-        );
+        String type = exception instanceof UserNotFoundException ? "user-not-found" : "resource-not-found";
+        return problemDetailFactory.buildResponse(HttpStatus.NOT_FOUND, type, "Not Found", exception.getMessage(), request);
     }
 
     @ExceptionHandler({
@@ -109,6 +116,25 @@ public class GlobalExceptionHandler {
                 exception.getMessage(),
                 request
         );
+    }
+
+    @ExceptionHandler(AdminScopeViolationException.class)
+    public ResponseEntity<ProblemDetail> handleAdminScopeViolation(
+            AdminScopeViolationException exception,
+            HttpServletRequest request
+    ) {
+        ProblemDetail problemDetail = problemDetailFactory.create(
+                HttpStatus.FORBIDDEN,
+                "admin-scope-violation",
+                "Forbidden",
+                exception.getMessage(),
+                request
+        );
+        problemDetail.setProperty("errorCode", "admin_scope_violation");
+
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .contentType(org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON)
+                .body(problemDetail);
     }
 
     @ExceptionHandler(UnauthorizedModuleKeyException.class)
