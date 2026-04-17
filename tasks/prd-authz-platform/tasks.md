@@ -64,7 +64,7 @@ CI/CD GitHub Actions, publicação dos SDKs em GitHub Packages, suíte E2E Playw
 - [X] 6.0 Filtro de autenticação por bearer de módulo + GlobalExceptionHandler ProblemDetails
 - [X] 7.0 Módulo `catalog`: endpoint `POST /v1/catalog/sync` idempotente com prefix binding
 - [X] 8.0 Integração CyberArk: validação de JWT e proxy de busca de usuários
-- [ ] 9.0 Módulo `iam`: domain Role/UserRole + API CRUD de roles
+- [X] 9.0 Módulo `iam`: domain Role/UserRole + API CRUD de roles
 - [ ] 10.0 Módulo `iam`: atribuição/revogação de roles com escopo por módulo (RF-07)
 - [ ] 11.0 Módulo `iam`: bulk fetch `/v1/users/{id}/permissions` com cache Caffeine
 - [ ] 12.0 Módulo `authz`: endpoint `POST /v1/authz/check`

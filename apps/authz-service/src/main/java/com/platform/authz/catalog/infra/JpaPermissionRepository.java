@@ -5,6 +5,7 @@ import com.platform.authz.catalog.domain.PermissionRepository;
 import com.platform.authz.catalog.domain.PermissionStatus;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import org.springframework.stereotype.Repository;
 
@@ -37,6 +38,17 @@ public class JpaPermissionRepository implements PermissionRepository {
     @Override
     public List<Permission> findByModuleIdAndStatusIn(UUID moduleId, List<PermissionStatus> statuses) {
         return springDataPermissionRepository.findByModuleIdAndStatusIn(moduleId, statuses).stream()
+                .map(this::toDomain)
+                .toList();
+    }
+
+    @Override
+    public List<Permission> findByIds(Set<UUID> permissionIds) {
+        if (permissionIds == null || permissionIds.isEmpty()) {
+            return List.of();
+        }
+
+        return springDataPermissionRepository.findAllById(permissionIds).stream()
                 .map(this::toDomain)
                 .toList();
     }

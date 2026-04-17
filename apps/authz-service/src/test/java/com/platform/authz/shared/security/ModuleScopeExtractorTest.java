@@ -156,6 +156,32 @@ class ModuleScopeExtractorTest {
         assertThat(modules).containsExactly("vendas");
     }
 
+    @Test
+    void canManageModule_WithHyphenatedModulePrefix_ShouldNormalizeAndMatch() {
+        // Arrange
+        Authentication auth = buildAuthentication(
+                "sales-mgr",
+                List.of("vendas-2026"),
+                List.of("VENDAS_2026_USER_MANAGER")
+        );
+
+        // Act & Assert
+        assertThat(extractor.canManageModule(auth, "vendas-2026")).isTrue();
+    }
+
+    @Test
+    void canManageModule_WithUnauthorizedModule_ShouldReturnFalse() {
+        // Arrange
+        Authentication auth = buildAuthentication(
+                "sales-mgr",
+                List.of("vendas"),
+                List.of("VENDAS_USER_MANAGER")
+        );
+
+        // Act & Assert
+        assertThat(extractor.canManageModule(auth, "estoque")).isFalse();
+    }
+
     private Authentication buildAuthentication(String subject, List<String> modules, List<String> roles) {
         Jwt jwt = buildJwt(subject, modules, roles);
         JwtAuthorizationConverter converter = new JwtAuthorizationConverter();

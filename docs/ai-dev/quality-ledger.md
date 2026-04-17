@@ -206,6 +206,32 @@ Sugestão de melhoria no:
 - Template de Task: Incluir alerta para registrar dependências de dados implícitas quando o requisito funcional depender de persistência futura.
 - Skill: Incluir checagem explícita de coerência entre contratos de idempotência e modelo de dados em revisões de schema.
 
+## [2026-04-17] | PRD: prd-authz-platform | Task: 9.0
+
+Modelo utilizado:
+GPT-5.4
+
+### Problemas Identificados
+
+1. Categoria Técnica: Lógica incorreta
+   Severidade: Média
+   Fase Detectada: Revisão
+   Origem Provável: Limitação do modelo
+   Necessitou Reimplementação Significativa? Não
+   Descrição: Os fluxos `CreateRoleHandler`, `UpdateRoleHandler` e `CloneRoleHandler` validam unicidade do nome apenas com `existsByModuleIdAndName(...)` antes do `save(...)`. Em concorrência, duas requisições podem passar na pré-validação e uma delas cair na constraint única `uq_role_module_name`, resultando em `DataIntegrityViolationException` tratada como 500 pelo `GlobalExceptionHandler` em vez de 409 `role-conflict`. Isso quebra o contrato esperado do CRUD de roles sob carga simultânea.
+
+### Resumo da Tarefa
+
+Total de Problemas: 1
+Categoria Técnica mais frequente: Lógica incorreta
+Origem mais frequente: Limitação do modelo
+Indício de fragilidade estrutural? (Sim/Não) Não
+Sugestão de melhoria no:
+- PRD: Nenhuma.
+- TechSpec: Nenhuma.
+- Template de Task: Explicitar em tasks de CRUD que conflitos de unicidade devem ser tratados também no caminho de persistência, não só por pré-validação.
+- Skill: Incluir checagem explícita de cenários TOCTOU/race condition quando o código depender de `exists...` + `save` com constraint única.
+
 ---
 
 ## 2026-04-17 | PRD: prd-authz-platform | Task: 05

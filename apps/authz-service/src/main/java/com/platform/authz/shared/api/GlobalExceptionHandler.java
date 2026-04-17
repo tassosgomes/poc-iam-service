@@ -1,7 +1,13 @@
 package com.platform.authz.shared.api;
 
-import com.platform.authz.iam.infra.CyberArkUnavailableException;
+import com.platform.authz.iam.domain.InvalidRoleNameException;
+import com.platform.authz.iam.domain.InvalidRolePermissionStatusException;
+import com.platform.authz.iam.domain.PermissionModuleMismatchException;
+import com.platform.authz.iam.domain.RoleConflictException;
+import com.platform.authz.iam.domain.RoleDeletionConflictException;
+import com.platform.authz.iam.domain.RoleNotFoundException;
 import com.platform.authz.iam.domain.UserSearchAccessDeniedException;
+import com.platform.authz.iam.infra.CyberArkUnavailableException;
 import com.platform.authz.modules.api.PlatformAdminRequiredException;
 import com.platform.authz.modules.domain.InvalidAllowedPrefixException;
 import com.platform.authz.modules.domain.ModuleActiveKeyNotFoundException;
@@ -48,7 +54,18 @@ public class GlobalExceptionHandler {
         );
     }
 
-    @ExceptionHandler({ModuleNotFoundException.class, EntityNotFoundException.class})
+    @ExceptionHandler({RoleConflictException.class, RoleDeletionConflictException.class})
+    public ResponseEntity<ProblemDetail> handleRoleConflict(RuntimeException exception, HttpServletRequest request) {
+        return problemDetailFactory.buildResponse(
+                HttpStatus.CONFLICT,
+                "role-conflict",
+                "Role conflict",
+                exception.getMessage(),
+                request
+        );
+    }
+
+    @ExceptionHandler({ModuleNotFoundException.class, RoleNotFoundException.class, EntityNotFoundException.class})
     public ResponseEntity<ProblemDetail> handleNotFound(RuntimeException exception, HttpServletRequest request) {
         return problemDetailFactory.buildResponse(
                 HttpStatus.NOT_FOUND,
@@ -61,16 +78,26 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({
             InvalidAllowedPrefixException.class,
-            ModuleActiveKeyNotFoundException.class
+            ModuleActiveKeyNotFoundException.class,
+            InvalidRoleNameException.class,
+            PermissionModuleMismatchException.class,
+            InvalidRolePermissionStatusException.class
     })
     public ResponseEntity<ProblemDetail> handleUnprocessable(RuntimeException exception, HttpServletRequest request) {
-        return problemDetailFactory.buildResponse(
+        ProblemDetail problemDetail = problemDetailFactory.create(
                 HttpStatus.UNPROCESSABLE_ENTITY,
-                "module-request-rejected",
-                "Module request rejected",
+                resolveUnprocessableType(exception),
+                "Request rejected",
                 exception.getMessage(),
                 request
         );
+        if (exception instanceof PermissionModuleMismatchException) {
+            problemDetail.setProperty("errorCode", "permission_module_mismatch");
+        }
+
+        return ResponseEntity.unprocessableEntity()
+                .contentType(org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON)
+                .body(problemDetail);
     }
 
     @ExceptionHandler(PlatformAdminRequiredException.class)
@@ -225,5 +252,18 @@ public class GlobalExceptionHandler {
                 "An unexpected error occurred",
                 request
         );
+    }
+
+    private String resolveUnprocessableType(RuntimeException exception) {
+        if (exception instanceof PermissionModuleMismatchException) {
+            return "permission-module-mismatch";
+        }
+        if (exception instanceof InvalidRoleNameException) {
+            return "invalid-role-name";
+        }
+        if (exception instanceof InvalidRolePermissionStatusException) {
+            return "invalid-role-permission-status";
+        }
+        return "module-request-rejected";
     }
 }
