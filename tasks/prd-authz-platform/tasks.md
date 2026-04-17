@@ -67,7 +67,7 @@ CI/CD GitHub Actions, publicação dos SDKs em GitHub Packages, suíte E2E Playw
 - [X] 9.0 Módulo `iam`: domain Role/UserRole + API CRUD de roles
 - [X] 10.0 Módulo `iam`: atribuição/revogação de roles com escopo por módulo (RF-07)
 - [X] 11.0 Módulo `iam`: bulk fetch `/v1/users/{id}/permissions` com cache Caffeine
-- [ ] 12.0 Módulo `authz`: endpoint `POST /v1/authz/check`
+- [X] 12.0 Módulo `authz`: endpoint `POST /v1/authz/check`
 - [ ] 13.0 Módulo `audit`: persistência, integração @Async em handlers e endpoint de consulta
 - [ ] 14.0 Lifecycle: StaleModuleDetector e deprecation de permissões (RF-12 + RF-16 stale)
 - [ ] 15.0 SDK Java: AuthzClient + cache por requisição + auto-config

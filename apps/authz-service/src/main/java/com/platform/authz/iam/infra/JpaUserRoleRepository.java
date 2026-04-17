@@ -54,6 +54,11 @@ public class JpaUserRoleRepository implements UserRoleRepository {
     }
 
     @Override
+    public Optional<String> findPermissionStatusByUserIdAndCode(String userId, String permissionCode) {
+        return springDataUserRoleRepository.findPermissionStatusByUserIdAndCode(userId, permissionCode);
+    }
+
+    @Override
     public UserRoleAssignment save(UserRoleAssignment userRoleAssignment) {
         UserRoleJpaEntity savedEntity = springDataUserRoleRepository.saveAndFlush(
                 userRoleEntityMapper.toEntity(userRoleAssignment)

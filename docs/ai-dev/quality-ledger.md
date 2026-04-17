@@ -417,6 +417,32 @@ Sugestão de melhoria no:
 - TechSpec: Incluir orientação explícita de isolamento de dados em testes de integração com Testcontainers (apontado na iteração 2 — confirmar se já incorporado).
 - Template de Task: Subtarefa 5.8 poderia incluir critério explícito de "dados únicos por caso" para suites com container estático.
 
+## [2026-04-17] | PRD: prd-authz-platform | Task: 12.0
+
+Modelo utilizado:
+GPT-5.4 + Claude Sonnet 4.6 (subagente de review)
+
+### Problemas Identificados
+
+1. Categoria Técnica: Teste inadequado
+   Severidade: Média
+   Fase Detectada: Revisão
+   Origem Provável: Skill insuficiente
+   Necessitou Reimplementação Significativa? Não
+   Descrição: A implementação da task 12 cobre o handler e o teste de performance, mas não há teste de integração dedicado para a matriz de autorização do endpoint `POST /v1/authz/check` (`self`, `PLATFORM_ADMIN`, `AUTHZ_CHECK` e terceiro sem privilégio). Isso reduz a proteção contra regressões em um requisito explícito da task e do PRD para o endpoint de decisão pontual.
+
+### Resumo da Tarefa
+
+Total de Problemas: 1
+Categoria Técnica mais frequente: Teste inadequado
+Origem mais frequente: Skill insuficiente
+Indício de fragilidade estrutural? (Sim/Não) Não
+Sugestão de melhoria no:
+- PRD: Nenhuma.
+- TechSpec: Nenhuma.
+- Template de Task: Explicitar, em tasks com matriz de autorização, a necessidade de testes automáticos cobrindo cenários positivos e negativos de acesso.
+- Skill: Incluir checagem explícita de cobertura de autorização para endpoints protegidos quando a task definir perfis/roles distintos.
+
 ---
 
 ## [2026-04-17] | PRD: prd-authz-platform | Task: 6.0
