@@ -1,0 +1,162 @@
+### ========================================
+### AuthZ Platform - Module Bootstrap Script
+### ========================================
+### This script creates the initial modules (vendas, estoque) via the AuthZ Service admin API.
+### 
+### Prerequisites:
+### 1. AuthZ Service must be running and healthy
+### 2. You must authenticate as a PLATFORM_ADMIN user
+### 3. Copy the generated module keys to infra/docker/.env
+###
+### Usage with JetBrains HTTP Client:
+### - Open this file in IntelliJ IDEA / WebStorm / PhpStorm
+### - Click the "Run" icon next to each request
+### - Or use VS Code with REST Client extension
+###
+### Usage with curl:
+### See the curl equivalents commented below each request
+### ========================================
+
+@gatewayBaseUrl = http://localhost/api
+@baseUrl = {{gatewayBaseUrl}}/v1
+@adminToken = {{$processEnv ADMIN_JWT_TOKEN}}
+
+### ========================================
+### Step 1: Health Check
+### ========================================
+### Verify the AuthZ Service is up and ready
+### ========================================
+
+GET {{gatewayBaseUrl}}/actuator/health/readiness
+Accept: application/json
+
+### curl equivalent:
+# curl -X GET http://localhost/api/actuator/health/readiness
+
+### ========================================
+### Step 2: Create Module - Vendas
+### ========================================
+### Creates the "vendas" module and returns a module key.
+### **IMPORTANT**: The key is shown ONLY ONCE. Copy it immediately.
+### ========================================
+
+POST {{baseUrl}}/modules
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "name": "vendas",
+  "allowedPrefix": "vendas",
+  "description": "Módulo de Vendas - controla permissões relacionadas a pedidos, clientes e relatórios de vendas",
+  "createdBy": "bootstrap-script"
+}
+
+### curl equivalent:
+# curl -X POST http://localhost/api/v1/modules \
+#   -H "Content-Type: application/json" \
+#   -H "Authorization: Bearer $ADMIN_JWT_TOKEN" \
+#   -d '{
+#     "name": "vendas",
+#     "allowedPrefix": "vendas",
+#     "description": "Módulo de Vendas",
+#     "createdBy": "bootstrap-script"
+#   }'
+
+### Expected response (200 OK):
+# {
+#   "id": "uuid-here",
+#   "name": "vendas",
+#   "allowedPrefix": "vendas",
+#   "moduleKey": "mk_vendas_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+#   "createdAt": "2026-04-16T10:00:00Z",
+#   "message": "Module created successfully. Store the moduleKey securely - it will not be shown again."
+# }
+
+### ========================================
+### Step 3: Create Module - Estoque
+### ========================================
+### Creates the "estoque" module and returns a module key.
+### **IMPORTANT**: The key is shown ONLY ONCE. Copy it immediately.
+### ========================================
+
+POST {{baseUrl}}/modules
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "name": "estoque",
+  "allowedPrefix": "estoque",
+  "description": "Módulo de Estoque - controla permissões relacionadas a inventário, movimentações e relatórios de estoque",
+  "createdBy": "bootstrap-script"
+}
+
+### curl equivalent:
+# curl -X POST http://localhost/api/v1/modules \
+#   -H "Content-Type: application/json" \
+#   -H "Authorization: Bearer $ADMIN_JWT_TOKEN" \
+#   -d '{
+#     "name": "estoque",
+#     "allowedPrefix": "estoque",
+#     "description": "Módulo de Estoque",
+#     "createdBy": "bootstrap-script"
+#   }'
+
+### Expected response (200 OK):
+# {
+#   "id": "uuid-here",
+#   "name": "estoque",
+#   "allowedPrefix": "estoque",
+#   "moduleKey": "mk_estoque_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+#   "createdAt": "2026-04-16T10:01:00Z",
+#   "message": "Module created successfully. Store the moduleKey securely - it will not be shown again."
+# }
+
+### ========================================
+### Step 4: Verify Modules
+### ========================================
+### List all modules to confirm creation
+### ========================================
+
+GET {{baseUrl}}/modules
+Accept: application/json
+Authorization: Bearer {{adminToken}}
+
+### curl equivalent:
+# curl -X GET http://localhost/api/v1/modules \
+#   -H "Authorization: Bearer $ADMIN_JWT_TOKEN"
+
+### ========================================
+### Post-Creation Steps
+### ========================================
+### 1. Copy the module keys from Step 2 and Step 3 responses
+### 2. Open infra/docker/.env (create it from .env.example if needed)
+### 3. Set:
+###    AUTHZ_MODULE_KEY_VENDAS=mk_vendas_xxxxx...
+###    AUTHZ_MODULE_KEY_ESTOQUE=mk_estoque_xxxxx...
+### 4. Restart demo services:
+###    docker-compose restart demo-ms-java demo-ms-dotnet
+### 5. Verify auto-registration succeeded:
+###    docker-compose logs demo-ms-java | grep "catalog sync"
+###    docker-compose logs demo-ms-dotnet | grep "catalog sync"
+### ========================================
+
+### ========================================
+### Troubleshooting
+### ========================================
+### 
+### Problem: "401 Unauthorized"
+### Solution: Ensure you have a valid JWT token with PLATFORM_ADMIN role
+###           Get a token by logging in via the App Shell, then extract
+###           the JWT from localStorage or browser dev tools.
+###
+### Problem: "Module key already exists"
+### Solution: Keys are one-time use. If you lost a key:
+###           1. Rotate the key via POST /v1/modules/{id}/keys/rotate
+###           2. Update .env with the new key
+###           3. Restart affected services
+###
+### Problem: "Prefix already in use"
+### Solution: Each module must have a unique allowed_prefix
+###           Check existing modules with GET /v1/modules
+###
+### ========================================

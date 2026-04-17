@@ -9,8 +9,12 @@
 *.user
 *.userosscache
 *.sln.docstates
+
+# Environment variables (contains secrets)
 *.env
+.env
 .env.*
+!.env.example
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs

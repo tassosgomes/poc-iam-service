@@ -49,12 +49,19 @@ Criar a stack completa de desenvolvimento local via `docker-compose`: Postgres, 
 
 ## Subtarefas
 
-- [ ] 2.1 Postgres com healthcheck e volume
-- [ ] 2.2 mock-oauth2-server com config JSON de issuer + 5 usuários demo
-- [ ] 2.3 nginx gateway com upstream para todos os serviços + SPA fallback
-- [ ] 2.4 `.env.example` documentado
-- [ ] 2.5 Script `seed-modules.http` (cria `vendas` e `estoque`, captura chaves)
-- [ ] 2.6 Validar `docker-compose up postgres cyberark-mock nginx-gateway` sobe sem erro
+- [x] 2.1 Postgres com healthcheck e volume
+- [x] 2.2 mock-oauth2-server com config JSON de issuer + 5 usuários demo
+- [x] 2.3 nginx gateway com upstream para todos os serviços + SPA fallback
+- [x] 2.4 `.env.example` documentado
+- [x] 2.5 Script `seed-modules.http` (cria `vendas` e `estoque`, captura chaves)
+- [x] 2.6 Validar `docker-compose up postgres cyberark-mock nginx-gateway` sobe sem erro
+
+- [x] 2.0 Docker Compose base + mock CyberArk + nginx gateway ✅ CONCLUÍDA
+  - [x] 2.1 Implementação completada
+  - [x] 2.2 Definição da tarefa, PRD e tech spec validados
+  - [x] 2.3 Análise de regras e conformidade verificadas
+  - [x] 2.4 Revisão de código completada
+  - [x] 2.5 Pronto para deploy
 
 ## Sequenciamento
 

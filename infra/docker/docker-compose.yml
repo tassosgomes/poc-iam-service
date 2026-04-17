@@ -1,0 +1,212 @@
+services:
+  # ========================================
+  # Postgres Database
+  # ========================================
+  postgres:
+    image: postgres:16.1-alpine
+    container_name: authz-postgres
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    networks:
+      - authz-network
+
+  # ========================================
+  # CyberArk Mock (OAuth2 Server)
+  # ========================================
+  cyberark-mock:
+    build:
+      context: ./cyberark-mock
+      dockerfile: Dockerfile
+    container_name: authz-cyberark-mock
+    ports:
+      - "8080:8080"
+    environment:
+      SERVER_PORT: 8080
+    healthcheck:
+      test: ["CMD", "java", "-version"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - authz-network
+
+  # ========================================
+  # Nginx Gateway (Reverse Proxy)
+  # ========================================
+  nginx-gateway:
+    image: nginx:1.25-alpine
+    container_name: authz-nginx-gateway
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx-gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      cyberark-mock:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    networks:
+      - authz-network
+
+  # ========================================
+  # AuthZ Service (Backend - Java/Spring Boot)
+  # ========================================
+  # authz-service:
+  #   build:
+  #     context: ../../apps/authz-service
+  #     dockerfile: Dockerfile
+  #   container_name: authz-service
+  #   environment:
+  #     SPRING_PROFILES_ACTIVE: dev
+  #     SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/authz
+  #     SPRING_DATASOURCE_USERNAME: authz
+  #     SPRING_DATASOURCE_PASSWORD: ${AUTHZ_DB_PASS:-authz}
+  #     SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://cyberark-mock:8080/default
+  #     AUTHZ_CYBERARK_BASE_URL: http://cyberark-mock:8080
+  #   ports:
+  #     - "8081:8081"
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     cyberark-mock:
+  #       condition: service_healthy
+  #   healthcheck:
+  #     test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/actuator/health/readiness"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 10
+  #     start_period: 60s
+  #   networks:
+  #     - authz-network
+
+  # ========================================
+  # App Shell (React Host MFE)
+  # ========================================
+  # app-shell:
+  #   build:
+  #     context: ../../apps/app-shell
+  #     dockerfile: Dockerfile
+  #   container_name: authz-app-shell
+  #   environment:
+  #     VITE_AUTHZ_API_BASE_URL: http://localhost/api
+  #     VITE_OIDC_AUTHORITY: http://localhost/default
+  #     VITE_OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-app-shell}
+  #   ports:
+  #     - "3000:80"
+  #   depends_on:
+  #     - nginx-gateway
+  #   networks:
+  #     - authz-network
+
+  # ========================================
+  # PAP UI (Admin MFE)
+  # ========================================
+  # pap-ui:
+  #   build:
+  #     context: ../../apps/pap-ui
+  #     dockerfile: Dockerfile
+  #   container_name: authz-pap-ui
+  #   environment:
+  #     VITE_AUTHZ_API_BASE_URL: http://localhost/api
+  #   ports:
+  #     - "3001:80"
+  #   depends_on:
+  #     - authz-service
+  #   networks:
+  #     - authz-network
+
+  # ========================================
+  # Demo MFE (Sales Demo)
+  # ========================================
+  # demo-mfe:
+  #   build:
+  #     context: ../../apps/demo-mfe
+  #     dockerfile: Dockerfile
+  #   container_name: authz-demo-mfe
+  #   environment:
+  #     VITE_DEMO_JAVA_API_URL: http://localhost/api/demo-java
+  #     VITE_DEMO_DOTNET_API_URL: http://localhost/api/demo-dotnet
+  #   ports:
+  #     - "3002:80"
+  #   depends_on:
+  #     - authz-service
+  #   networks:
+  #     - authz-network
+
+  # ========================================
+  # Demo MS Java (Sales Service)
+  # ========================================
+  # demo-ms-java:
+  #   build:
+  #     context: ../../apps/demo-ms-java
+  #     dockerfile: Dockerfile
+  #   container_name: authz-demo-ms-java
+  #   environment:
+  #     SPRING_PROFILES_ACTIVE: dev
+  #     AUTHZ_SERVICE_BASE_URL: http://authz-service:8081
+  #     AUTHZ_MODULE_KEY: ${AUTHZ_MODULE_KEY_VENDAS}
+  #   ports:
+  #     - "8082:8082"
+  #   depends_on:
+  #     authz-service:
+  #       condition: service_healthy
+  #   healthcheck:
+  #     test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8082/actuator/health/readiness"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 10
+  #     start_period: 30s
+  #   networks:
+  #     - authz-network
+
+  # ========================================
+  # Demo MS .NET (Stock Service)
+  # ========================================
+  # demo-ms-dotnet:
+  #   build:
+  #     context: ../../apps/demo-ms-dotnet
+  #     dockerfile: Dockerfile
+  #   container_name: authz-demo-ms-dotnet
+  #   environment:
+  #     ASPNETCORE_ENVIRONMENT: Development
+  #     AuthZ__ServiceBaseUrl: http://authz-service:8081
+  #     AuthZ__ModuleKey: ${AUTHZ_MODULE_KEY_ESTOQUE}
+  #   ports:
+  #     - "8083:8080"
+  #   depends_on:
+  #     authz-service:
+  #       condition: service_healthy
+  #   healthcheck:
+  #     test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health/ready"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 10
+  #     start_period: 30s
+  #   networks:
+  #     - authz-network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  authz-network:
+    driver: bridge

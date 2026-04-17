@@ -1,0 +1,76 @@
+{
+  "interactiveLogin": true,
+  "httpServer": "NettyWrapper",
+  "tokenProvider": {
+    "keyProvider": {
+      "algorithm": "RS256"
+    }
+  },
+  "tokenCallbacks": [
+    {
+      "issuerId": "default",
+      "requestMappings": [
+        {
+          "requestParam": "username",
+          "match": "user-admin",
+          "claims": {
+            "sub": "user-admin",
+            "email": "admin@demo",
+            "name": "Admin Platform",
+            "preferred_username": "admin",
+            "module_membership": ["platform"],
+            "roles": ["PLATFORM_ADMIN"]
+          }
+        },
+        {
+          "requestParam": "username",
+          "match": "user-vendas-mgr",
+          "claims": {
+            "sub": "user-vendas-mgr",
+            "email": "vmgr@demo",
+            "name": "Vendas Manager",
+            "preferred_username": "vendas-manager",
+            "module_membership": ["vendas"],
+            "roles": ["VENDAS_MANAGER"]
+          }
+        },
+        {
+          "requestParam": "username",
+          "match": "user-vendas-op",
+          "claims": {
+            "sub": "user-vendas-op",
+            "email": "vop@demo",
+            "name": "Vendas Operator",
+            "preferred_username": "vendas-operator",
+            "module_membership": ["vendas"],
+            "roles": ["VENDAS_OPERATOR"]
+          }
+        },
+        {
+          "requestParam": "username",
+          "match": "user-estoque-mgr",
+          "claims": {
+            "sub": "user-estoque-mgr",
+            "email": "emgr@demo",
+            "name": "Estoque Manager",
+            "preferred_username": "estoque-manager",
+            "module_membership": ["estoque"],
+            "roles": ["ESTOQUE_MANAGER"]
+          }
+        },
+        {
+          "requestParam": "username",
+          "match": "user-multi",
+          "claims": {
+            "sub": "user-multi",
+            "email": "multi@demo",
+            "name": "Multi Module User",
+            "preferred_username": "multi-user",
+            "module_membership": ["vendas", "estoque"],
+            "roles": ["VENDAS_OPERATOR", "ESTOQUE_OPERATOR"]
+          }
+        }
+      ]
+    }
+  ]
+}
