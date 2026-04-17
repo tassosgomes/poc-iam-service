@@ -414,3 +414,102 @@ Sugestão de melhoria no:
 - TechSpec: Nenhuma.
 - Template de Task: Nenhuma.
 - Skill: Nenhuma.
+
+## [2026-04-17] | PRD: prd-authz-platform | Task: 8.0
+
+Modelo utilizado:
+GPT-5.4
+
+### Problemas Identificados
+
+1. Categoria Técnica: Teste inadequado
+   Severidade: Crítica
+   Fase Detectada: Revisão
+   Origem Provável: Limitação do modelo
+   Necessitou Reimplementação Significativa? Não
+   Descrição: `UserSearchIntegrationTest` contém uma asserção inconsistente no cenário `searchUsers_WithScopedManagerToken_ShouldFilterModulesByScope`. O teste espera 2 usuários, mas a lógica implementada mantém também `user-multi` com `modules=["vendas"]`, totalizando 3 resultados.
+
+2. Categoria Técnica: Violação de padrão arquitetural
+   Severidade: Média
+   Fase Detectada: Revisão
+   Origem Provável: Contexto insuficiente
+   Necessitou Reimplementação Significativa? Não
+   Descrição: `UserSearchService` depende diretamente da classe concreta `CyberArkUserSearchClient` na camada `infra`, contrariando a diretriz de port/adapter e a dependência da camada `application` apenas de abstrações internas.
+
+3. Categoria Técnica: Violação de padrão arquitetural
+   Severidade: Média
+   Fase Detectada: Revisão
+   Origem Provável: Contexto insuficiente
+   Necessitou Reimplementação Significativa? Não
+   Descrição: `UserSearchService` usa e retorna `UserSummaryDto`, tipo definido na camada `api`, invertendo a direção de dependência entre `api` e `application`.
+
+4. Categoria Técnica: Violação de padrão arquitetural
+   Severidade: Média
+   Fase Detectada: Revisão
+   Origem Provável: Contexto insuficiente
+   Necessitou Reimplementação Significativa? Não
+   Descrição: `CyberArkUnavailableException` modela falha de integração externa como `DomainException`, misturando semânticas de domínio e infraestrutura.
+
+5. Categoria Técnica: Teste inadequado
+   Severidade: Média
+   Fase Detectada: Revisão
+   Origem Provável: Task mal fragmentada
+   Necessitou Reimplementação Significativa? Não
+   Descrição: A task não resultou em testes unitários dedicados para `UserSearchService` e `ModuleScopeExtractor`, deixando sem proteção de regressão a lógica central de filtragem por escopo.
+
+### Resumo da Tarefa
+
+Total de Problemas: 5
+Categoria Técnica mais frequente: Violação de padrão arquitetural
+Origem mais frequente: Contexto insuficiente
+Indício de fragilidade estrutural? (Sim/Não) Sim
+Sugestão de melhoria no:
+- PRD: Nenhuma.
+- TechSpec: Explicitar com exemplo que integrações externas no módulo `iam` devem usar portas/interfaces na camada de aplicação e que DTOs de API não devem atravessar para `application`.
+- Template de Task: Adicionar checklist obrigatório para cobertura unitária da regra de negócio quando houver filtragem/autorização além do teste de integração.
+- Skill: Reforçar exemplos de adapter externo em Java retornando modelos internos da aplicação e não DTOs da API.
+
+---
+
+## [Re-revisão] 2025 | PRD: authz-platform | Task: 8
+
+### Problemas Identificados
+
+Zero Defects Identified
+
+Todos os 5 problemas apontados na revisão anterior foram corrigidos pelo implementador antes desta re-revisão:
+- Teste de integração corrigido (3 usuários, `user-multi` validado explicitamente)
+- `UserSearchPort` + `UserSummary` introduzidos (violação de arquitetura resolvida)
+- `CyberArkUnavailableException` desacoplada de `DomainException`
+- 11 testes unitários adicionados em `UserSearchServiceTest`
+- 11 testes unitários adicionados em `ModuleScopeExtractorTest`
+
+### Resumo da Tarefa
+
+Total de Problemas: 0
+Categoria Técnica mais frequente: N/A
+Origem mais frequente: N/A
+Indício de fragilidade estrutural? Não
+Sugestão de melhoria: Nenhuma — ciclo de correção eficiente; todos os bloqueadores resolvidos em uma iteração.
+
+## [2026-04-17] | PRD: prd-authz-platform | Task: 8.0
+
+Modelo utilizado:
+(Preenchido pelo Orquestrador)
+
+### Problemas Identificados
+
+Zero Defects Identified
+Iterações até estabilização: 1
+
+### Resumo da Tarefa
+
+Total de Problemas: 0
+Categoria Técnica mais frequente: N/A
+Origem mais frequente: N/A
+Indício de fragilidade estrutural? (Sim/Não) Não
+Sugestão de melhoria no:
+- PRD: Nenhuma.
+- TechSpec: Nenhuma.
+- Template de Task: Nenhuma.
+- Skill: Nenhuma.

@@ -80,7 +80,8 @@ services:
       AUTHZ_DB_URL: jdbc:postgresql://postgres:5432/authz
       AUTHZ_DB_USER: authz
       AUTHZ_DB_PASS: ${AUTHZ_DB_PASS:-authz}
-      SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI: http://cyberark-mock:8080/default
+      CYBERARK_ISSUER: http://cyberark-mock:8080/default
+      CYBERARK_USER_API_BASE_URL: http://cyberark-mock:8080/api/users
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
     ports:
       - "18081:8081"

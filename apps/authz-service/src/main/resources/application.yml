@@ -31,7 +31,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${SPRING_SECURITY_OAUTH2_RESOURCESERVER_JWT_ISSUER_URI:http://localhost/default}
+          issuer-uri: ${cyberark.issuer-uri}
   threads:
     virtual:
       enabled: true
@@ -76,3 +76,23 @@ otel:
 
 app:
   environment: ${APP_ENVIRONMENT:dev}
+
+cyberark:
+  issuer-uri: ${CYBERARK_ISSUER:http://localhost:8080/default}
+  user-api-base-url: ${CYBERARK_USER_API_BASE_URL:http://localhost:8080/api/users}
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      cyberark:
+        register-health-indicator: true
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 30s
+        permitted-number-of-calls-in-half-open-state: 3
+        minimum-number-of-calls: 5
+  retry:
+    instances:
+      cyberark:
+        max-attempts: 2
+        wait-duration: 500ms

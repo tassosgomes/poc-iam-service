@@ -1,5 +1,7 @@
 package com.platform.authz.shared.api;
 
+import com.platform.authz.iam.infra.CyberArkUnavailableException;
+import com.platform.authz.iam.domain.UserSearchAccessDeniedException;
 import com.platform.authz.modules.api.PlatformAdminRequiredException;
 import com.platform.authz.modules.domain.InvalidAllowedPrefixException;
 import com.platform.authz.modules.domain.ModuleActiveKeyNotFoundException;
@@ -182,6 +184,35 @@ public class GlobalExceptionHandler {
         return ResponseEntity.unprocessableEntity()
                 .contentType(org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON)
                 .body(problemDetail);
+    }
+
+    @ExceptionHandler(CyberArkUnavailableException.class)
+    public ResponseEntity<ProblemDetail> handleCyberArkUnavailable(
+            CyberArkUnavailableException exception,
+            HttpServletRequest request
+    ) {
+        LOGGER.warn("cyberark_unavailable path={}", request != null ? request.getRequestURI() : "unknown");
+        return problemDetailFactory.buildResponse(
+                HttpStatus.SERVICE_UNAVAILABLE,
+                "cyberark-unavailable",
+                "Service Unavailable",
+                "Identity provider is temporarily unavailable. Please try again later.",
+                request
+        );
+    }
+
+    @ExceptionHandler(UserSearchAccessDeniedException.class)
+    public ResponseEntity<ProblemDetail> handleUserSearchAccessDenied(
+            UserSearchAccessDeniedException exception,
+            HttpServletRequest request
+    ) {
+        return problemDetailFactory.buildResponse(
+                HttpStatus.FORBIDDEN,
+                "user-search-forbidden",
+                "Forbidden",
+                exception.getMessage(),
+                request
+        );
     }
 
     @ExceptionHandler(Exception.class)
