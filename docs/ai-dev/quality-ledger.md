@@ -605,3 +605,65 @@ Sugestão de melhoria no:
 - TechSpec: Nenhuma.
 - Template de Task: Nenhuma.
 - Skill: Nenhuma.
+
+## [2026-04-17] | PRD: prd-authz-platform | Task: 11.0
+
+Modelo utilizado:
+GPT-5.4 + Claude Sonnet 4.6 (subagentes de review/teste)
+
+### Problemas Identificados
+
+1. Categoria Técnica: Falha de validação
+   Severidade: Alta
+   Fase Detectada: Revisão
+   Origem Provável: Lacuna na TechSpec
+   Necessitou Reimplementação Significativa? Não
+   Descrição: A task exige que o cache Caffeine tenha TTL ≤ TTL do JWT (`tasks/prd-authz-platform/11_task.md`, linha 24), e a TechSpec reforça que o bulk fetch deve usar TTL curto abaixo do JWT (`tasks/prd-authz-platform/techspec.md`, trecho da linha 626). Porém `apps/authz-service/src/main/java/com/platform/authz/config/CacheConfig.java` aceita qualquer valor de `authz.cache.user-permissions-ttl` sem validar contra uma fonte de verdade do TTL do JWT. A implementação pode ser configurada em desacordo com o requisito.
+
+2. Categoria Técnica: Teste inadequado
+   Severidade: Média
+   Fase Detectada: Revisão
+   Origem Provável: Limitação do modelo
+   Necessitou Reimplementação Significativa? Não
+   Descrição: `apps/authz-service/src/test/java/com/platform/authz/iam/application/GetUserPermissionsHandlerTest.java` não valida de fato os requisitos de exclusão de roles revogados e exclusão de permissões `REMOVED` pedidos na subtarefa 11.6. Os cenários apenas mockam o repositório já filtrado, sem proteger a query real contra regressões.
+
+3. Categoria Técnica: Teste inadequado
+   Severidade: Média
+   Fase Detectada: Revisão
+   Origem Provável: Limitação do modelo
+   Necessitou Reimplementação Significativa? Não
+   Descrição: A task determina que o teste de performance seja isolado em profile `perf` (`tasks/prd-authz-platform/11_task.md`, linha 94), mas `apps/authz-service/src/test/java/com/platform/authz/iam/integration/BulkFetchPerformanceTest.java` não usa `@ActiveProfiles("perf")` nem configuração equivalente.
+
+### Resumo da Tarefa
+
+Total de Problemas: 3
+Categoria Técnica mais frequente: Teste inadequado
+Origem mais frequente: Limitação do modelo
+Indício de fragilidade estrutural? (Sim/Não) Sim
+Sugestão de melhoria no:
+- PRD: Nenhuma.
+- TechSpec: Explicitar a propriedade/fonte de verdade do TTL do JWT que deve ser usada para validar `authz.cache.user-permissions-ttl`. Trecho afetado: seção que afirma “TTL curto (< JWT TTL, ex: 10min)”.
+- Template de Task: Exigir evidência explícita quando a subtarefa pedir filtros de query (ex.: caso seedado com `revoked_at` e `REMOVED`) e quando pedir isolamento por profile de testes.
+- Skill: Incluir checagem explícita para invariantes entre TTL de cache e TTL de token, e para testes que realmente exercitam filtros SQL/JPQL ao invés de apenas mockar dados já filtrados.
+
+## [2026-04-17] | PRD: prd-authz-platform | Task: 11.0
+
+Modelo utilizado:
+GPT-5.4 + reviewer subagent
+
+### Problemas Identificados
+
+Zero Defects Identified
+Iterações até estabilização: 2
+
+### Resumo da Tarefa
+
+Total de Problemas: 0
+Categoria Técnica mais frequente: N/A
+Origem mais frequente: N/A
+Indício de fragilidade estrutural? (Sim/Não) Não
+Sugestão de melhoria no:
+- PRD: Nenhuma.
+- TechSpec: Alinhar o nome da métrica de cache hit ratio com a implementação para evitar ambiguidade documental.
+- Template de Task: Nenhuma.
+- Skill: Nenhuma.

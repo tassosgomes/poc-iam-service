@@ -14,5 +14,7 @@ public interface UserRoleRepository {
 
     List<UserRoleAssignment> findActiveByUserId(String userId);
 
+    List<String> findDistinctPermissionCodesByUserId(String userId);
+
     UserRoleAssignment save(UserRoleAssignment userRoleAssignment);
 }

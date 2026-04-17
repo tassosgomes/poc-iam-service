@@ -3,6 +3,7 @@ package com.platform.authz.iam.application;
 import com.platform.authz.audit.application.AuditEventPublisher;
 import com.platform.authz.audit.domain.AuditEvent;
 import com.platform.authz.audit.domain.AuditEventType;
+import com.platform.authz.config.CacheConfig;
 import com.platform.authz.iam.domain.Role;
 import com.platform.authz.iam.domain.RoleNotFoundException;
 import com.platform.authz.iam.domain.RoleRepository;
@@ -19,6 +20,7 @@ import java.util.Map;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,6 +58,7 @@ public class RevokeRoleHandler {
         this.clock = Objects.requireNonNull(clock, "clock must not be null");
     }
 
+    @CacheEvict(value = CacheConfig.USER_PERMISSIONS_CACHE, key = "#command.userId()")
     @Transactional
     public void handle(RevokeRoleCommand command, Authentication authentication) {
         Objects.requireNonNull(command, "command must not be null");

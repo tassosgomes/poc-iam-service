@@ -26,7 +26,7 @@ spring:
   cache:
     type: caffeine
     caffeine:
-      spec: maximumSize=1000,expireAfterWrite=5m
+      spec: maximumSize=${AUTHZ_CACHE_USER_PERMISSIONS_MAX_SIZE:10000},expireAfterWrite=${AUTHZ_CACHE_USER_PERMISSIONS_TTL:10m}
   security:
     oauth2:
       resourceserver:
@@ -76,6 +76,13 @@ otel:
 
 app:
   environment: ${APP_ENVIRONMENT:dev}
+
+authz:
+  cache:
+    user-permissions-ttl: ${AUTHZ_CACHE_USER_PERMISSIONS_TTL:10m}
+    user-permissions-max-size: ${AUTHZ_CACHE_USER_PERMISSIONS_MAX_SIZE:10000}
+  security:
+    jwt-ttl: ${AUTHZ_SECURITY_JWT_TTL:15m}
 
 cyberark:
   issuer-uri: ${CYBERARK_ISSUER:http://localhost:8080/default}
