@@ -205,3 +205,122 @@ Sugestão de melhoria no:
 - TechSpec: Adicionar campo persistente para `payload hash`/versão de catálogo por módulo ou documentar explicitamente a estratégia stateless de idempotência.
 - Template de Task: Incluir alerta para registrar dependências de dados implícitas quando o requisito funcional depender de persistência futura.
 - Skill: Incluir checagem explícita de coerência entre contratos de idempotência e modelo de dados em revisões de schema.
+
+---
+
+## 2026-04-17 | PRD: prd-authz-platform | Task: 05
+
+### Problemas Identificados
+
+1. Categoria Técnica: Teste inadequado
+   Severidade: Média
+   Fase Detectada: Revisão
+   Origem Provável: Contexto insuficiente
+   Necessitou Reimplementação Significativa? Não
+   Descrição: `ModuleAdminIntegrationTest` possui dois testes que compartilham os mesmos dados de fixture (`name="Sales"`, `allowedPrefix="sales"`) sem isolamento de estado entre eles. Num Testcontainers com container estático, a execução do primeiro teste contamina o banco para o segundo, podendo causar falha não-determinística dependendo da ordem de execução do JUnit 5. Correção: usar fixtures com nomes únicos por teste ou adicionar limpeza `@BeforeEach` via JDBC.
+
+2. Categoria Técnica: Overengineering
+   Severidade: Baixa
+   Fase Detectada: Revisão
+   Origem Provável: Limitação do modelo
+   Necessitou Reimplementação Significativa? Não
+   Descrição: Método `generateSecret()` duplicado identicamente em `CreateModuleHandler` e `RotateKeyHandler`. Deveria ser extraído para um componente ou utilitário compartilhado, seguindo o princípio DRY.
+
+### Resumo da Tarefa
+
+Total de Problemas: 2
+Categoria Técnica mais frequente: Teste inadequado
+Origem mais frequente: Contexto insuficiente
+Indício de fragilidade estrutural? Não
+Sugestão de melhoria no:
+- PRD: Nenhuma.
+- TechSpec: Incluir padrão explícito de isolamento de estado para testes de integração com Testcontainers (ex.: fixtures com nomes gerados dinamicamente ou cleanup `@BeforeEach`).
+- Template de Task: Adicionar critério explícito de isolamento de testes de integração nas subtarefas de teste (5.8).
+
+## [2026-04-17] | PRD: prd-authz-platform | Task: 05
+
+Modelo utilizado:
+GPT-5.4
+
+### Problemas Identificados
+
+1. Categoria Técnica: Erro de integração
+   Severidade: Alta
+   Fase Detectada: Revisão
+   Origem Provável: Task mal fragmentada
+   Necessitou Reimplementação Significativa? Não
+   Descrição: A implementação da task 05 não registra evento de auditoria na criação e na rotação de chave, embora o PRD (`tasks/prd-authz-platform/prd.md`, RF-13/RF-17) e a TechSpec (`tasks/prd-authz-platform/techspec.md`, seção `RecordAuditEvent`) exijam esse comportamento. O código atual em `CreateModuleHandler` e `RotateKeyHandler` registra apenas logs INFO.
+
+2. Categoria Técnica: Teste inadequado
+   Severidade: Média
+   Fase Detectada: Revisão
+   Origem Provável: Contexto insuficiente
+   Necessitou Reimplementação Significativa? Não
+   Descrição: `ModuleAdminIntegrationTest` não cobre cenários negativos de acesso administrativo (`401` sem autenticação e `403` sem role `PLATFORM_ADMIN`), deixando sem proteção de regressão um requisito explícito de autorização placeholder das rotas admin.
+
+### Resumo da Tarefa
+
+Total de Problemas: 2
+Categoria Técnica mais frequente: Erro de integração
+Origem mais frequente: Task mal fragmentada
+Indício de fragilidade estrutural? (Sim/Não) Sim
+Sugestão de melhoria no:
+- PRD: Nenhuma.
+- TechSpec: Nenhuma.
+- Template de Task: Explicitar dependências obrigatórias com auditoria quando o requisito funcional do PRD já exigir emissão de evento na mesma entrega.
+- Skill: Incluir checagem explícita de rastreabilidade entre requisitos de auditoria do PRD/TechSpec e implementações de handlers de escrita.
+
+## [2026-04-17] | PRD: prd-authz-platform | Task: 05
+
+Modelo utilizado:
+GPT-5.4
+
+### Problemas Identificados
+
+1. Categoria Técnica: Teste inadequado
+   Severidade: Média
+   Fase Detectada: Revisão
+   Origem Provável: Contexto insuficiente
+   Necessitou Reimplementação Significativa? (Sim/Não) Não
+   Descrição: `ModuleAdminIntegrationTest` continua compartilhando fixtures (`Sales/sales` e `Support/support`) entre múltiplos testes sobre o mesmo banco do container estático, sem cleanup ou dados únicos por caso. Isso mantém a suíte dependente da ordem de execução e potencialmente flakey quando Docker/Testcontainers estiver funcional.
+
+### Resumo da Tarefa
+
+Total de Problemas: 1
+Categoria Técnica mais frequente: Teste inadequado
+Origem mais frequente: Contexto insuficiente
+Indício de fragilidade estrutural? (Sim/Não) Não
+Sugestão de melhoria no:
+- PRD: Nenhuma.
+- TechSpec: Incluir orientação explícita de isolamento de dados em testes de integração com banco compartilhado.
+- Template de Task: Reforçar critério de isolamento/cleanup para suites com Testcontainers e container estático.
+- Skill: Incluir checagem explícita de reuso de fixtures entre testes de integração stateful.
+
+## [2026-04-17] | PRD: prd-authz-platform | Task: 05 (revisão final)
+
+Modelo utilizado:
+Claude Sonnet 4.5
+
+### Problemas Identificados
+
+Zero Defects Identified
+
+Iterações até estabilização: 3
+Todas as issues das revisões anteriores foram resolvidas:
+- Auditoria (MODULE_CREATED / KEY_ROTATED) integrada nos dois handlers de escrita
+- Cenários 401/403 cobertos em ModuleAdminIntegrationTest
+- Isolamento de estado resolvido com uniqueSuffix() baseado em UUID
+
+Observação não-bloqueante registrada:
+- generateSecret() e hashPayload() duplicados entre CreateModuleHandler e RotateKeyHandler (candidatos a extração futura, baixa severidade)
+
+### Resumo da Tarefa
+
+Total de Problemas: 0
+Categoria Técnica mais frequente: N/A
+Origem mais frequente: N/A
+Indício de fragilidade estrutural? Não
+Sugestão de melhoria no:
+- PRD: Nenhuma.
+- TechSpec: Incluir orientação explícita de isolamento de dados em testes de integração com Testcontainers (apontado na iteração 2 — confirmar se já incorporado).
+- Template de Task: Subtarefa 5.8 poderia incluir critério explícito de "dados únicos por caso" para suites com container estático.

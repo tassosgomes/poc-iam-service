@@ -60,7 +60,7 @@ CI/CD GitHub Actions, publicação dos SDKs em GitHub Packages, suíte E2E Playw
 - [x] 2.0 Docker Compose base + mock CyberArk + nginx gateway
 - [X] 3.0 AuthZ Service: bootstrap Spring Boot e configurações base
 - [X] 4.0 AuthZ Service: schema Postgres e migrations Flyway
-- [ ] 5.0 Módulo `modules`: domain, repositórios e API admin (criar/rotacionar chave)
+- [X] 5.0 Módulo `modules`: domain, repositórios e API admin (criar/rotacionar chave)
 - [ ] 6.0 Filtro de autenticação por bearer de módulo + GlobalExceptionHandler ProblemDetails
 - [ ] 7.0 Módulo `catalog`: endpoint `POST /v1/catalog/sync` idempotente com prefix binding
 - [ ] 8.0 Integração CyberArk: validação de JWT e proxy de busca de usuários
