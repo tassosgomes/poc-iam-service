@@ -2,6 +2,7 @@ package com.platform.authz.modules.infra;
 
 import com.platform.authz.modules.domain.Module;
 import com.platform.authz.modules.domain.ModuleRepository;
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -43,6 +44,16 @@ public class JpaModuleRepository implements ModuleRepository {
     @Override
     public Optional<Module> findById(UUID moduleId) {
         return springDataModuleRepository.findById(moduleId).map(moduleEntityMapper::toDomain);
+    }
+
+    @Override
+    public Optional<Module> findByIdForUpdate(UUID moduleId) {
+        return springDataModuleRepository.findByIdForUpdate(moduleId).map(moduleEntityMapper::toDomain);
+    }
+
+    @Override
+    public void updateLastHeartbeatAt(UUID moduleId, Instant lastHeartbeatAt) {
+        springDataModuleRepository.updateLastHeartbeatAt(moduleId, lastHeartbeatAt);
     }
 
     @Override

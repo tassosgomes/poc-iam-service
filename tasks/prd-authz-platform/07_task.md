@@ -68,15 +68,15 @@ Implementar o coração da plataforma: o endpoint de sincronização de catálog
 
 ## Subtarefas
 
-- [ ] 7.1 `SyncRequest`/`SyncResponse` DTOs + validações (não-vazio, regex de code)
-- [ ] 7.2 `PermissionPrefixValidator` aplicado: rejeitar 403 antes de tocar BD
-- [ ] 7.3 `SyncCatalogHandler` com diff lógico (added/updated/deprecated)
-- [ ] 7.4 Persistir `SyncEvent` com `payload_hash`, `permission_count`, `occurred_at`
-- [ ] 7.5 Atualizar `module.last_heartbeat_at`
-- [ ] 7.6 Lock otimista no módulo
-- [ ] 7.7 Métrica + log estruturado
-- [ ] 7.8 Testes unitários: idempotência, added, updated, deprecated, prefix violation, concorrência simulada
-- [ ] 7.9 Teste de integração end-to-end (filter + handler + db)
+- [x] 7.1 `SyncRequest`/`SyncResponse` DTOs + validações (não-vazio, regex de code)
+- [x] 7.2 `PermissionPrefixValidator` aplicado: rejeitar 403 antes de tocar BD
+- [x] 7.3 `SyncCatalogHandler` com diff lógico (added/updated/deprecated)
+- [x] 7.4 Persistir `SyncEvent` com `payload_hash`, `permission_count`, `occurred_at`
+- [x] 7.5 Atualizar `module.last_heartbeat_at`
+- [x] 7.6 Lock otimista no módulo
+- [x] 7.7 Métrica + log estruturado
+- [x] 7.8 Testes unitários: idempotência, added, updated, deprecated, prefix violation, concorrência simulada
+- [x] 7.9 Teste de integração end-to-end (filter + handler + db)
 
 ## Sequenciamento
 
@@ -104,7 +104,7 @@ Implementar o coração da plataforma: o endpoint de sincronização de catálog
 - `@Transactional` no handler (`java-architecture`)
 - DTOs como records, validados com Bean Validation (`java-code-quality`)
 - Testes nomeados `methodName_Condition_ExpectedBehavior` (`java-testing`)
-- Permissões em `snake_case_with_dots`, aceitas regex `^[a-z][a-z0-9_]{0,30}(\\.[a-z][a-z0-9_]{0,30}){2,}$` (`common-roles-naming`)
+- Permissões em `snake_case_with_dots`, com primeiro segmento alinhado ao `allowedPrefix` (aceita hífen) e segmentos restantes em `snake_case` (`common-roles-naming`)
 
 ## Critérios de Sucesso (Verificáveis)
 
@@ -116,3 +116,12 @@ Implementar o coração da plataforma: o endpoint de sincronização de catálog
 - [ ] cURL: sync sem `description` → 422 ProblemDetail
 - [ ] Métrica `authz_catalog_sync_total` incrementa por result
 - [ ] `module.last_heartbeat_at` é atualizado mesmo em sync idempotente
+
+## Conclusão
+
+- [x] 7.0 Módulo `catalog` — endpoint `POST /v1/catalog/sync` idempotente com prefix binding ✅ CONCLUÍDA
+  - [x] 7.1 Implementação completada
+  - [x] 7.2 Definição da tarefa, PRD e tech spec validados
+  - [x] 7.3 Análise de regras e conformidade verificadas
+  - [x] 7.4 Revisão de código completada
+  - [x] 7.5 Pronto para deploy

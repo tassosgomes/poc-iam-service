@@ -1,5 +1,6 @@
 package com.platform.authz.modules.domain;
 
+import com.platform.authz.shared.domain.ValidationPatterns;
 import java.time.Instant;
 import java.util.Locale;
 import java.util.Objects;
@@ -15,7 +16,7 @@ public record Module(
         Instant createdAt,
         Instant lastHeartbeatAt
 ) {
-    private static final Pattern ALLOWED_PREFIX_PATTERN = Pattern.compile("^[a-z][a-z0-9-]{1,30}$");
+    private static final Pattern ALLOWED_PREFIX_PATTERN = Pattern.compile(ValidationPatterns.ALLOWED_PREFIX_REGEX);
 
     public Module {
         Objects.requireNonNull(id, "id must not be null");

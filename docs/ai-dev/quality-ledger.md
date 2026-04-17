@@ -366,3 +366,51 @@ Sugestão de melhoria no:
 - TechSpec: Corrigir o label da métrica de `{module}` para `{reason}` no trecho que define `authz_module_key_invalid_total`.
 - Template de Task: Ao listar cenários de teste em subtarefas de autenticação, incluir explicitamente o caso "credencial inválida para entidade existente" (wrong secret, known entity), que é o cenário de ataque primário e costuma ser omitido quando a atenção vai para casos de "não encontrado".
 - Skill: Nenhuma.
+
+## [2026-04-17] | PRD: prd-authz-platform | Task: 7.0
+
+Modelo utilizado:
+(Preenchido pelo Orquestrador)
+
+### Problemas Identificados
+
+1. Categoria Técnica: Erro de integração
+   Severidade: Alta
+   Fase Detectada: Revisão
+   Origem Provável: Task mal fragmentada
+   Necessitou Reimplementação Significativa? Não
+   Descrição: Há inconsistência contratual entre as Tasks 5.0 e 7.0. `CreateModuleRequest` e `Module` aceitam `allowedPrefix` com hífen (`^[a-z][a-z0-9-]{1,30}$`), mas `PermissionDeclaration.code` exige primeiro segmento sem hífen (`^[a-z][a-z0-9_]{0,30}(\\.[a-z][a-z0-9_]{0,30}){2,}$`). Assim, módulos válidos como `sales-abc12345` não conseguem sincronizar permissões como `sales-abc12345.orders.create`, pois a requisição falha com 422 antes do `PermissionPrefixValidator`. Trechos afetados: `apps/authz-service/src/main/java/com/platform/authz/modules/api/dto/CreateModuleRequest.java`, `apps/authz-service/src/main/java/com/platform/authz/modules/domain/Module.java`, `apps/authz-service/src/main/java/com/platform/authz/catalog/api/dto/PermissionDeclaration.java` e os testes de integração que usam prefixos com hífen e ficaram mascarados por skip de Testcontainers.
+
+### Resumo da Tarefa
+
+Total de Problemas: 1
+Categoria Técnica mais frequente: Erro de integração
+Origem mais frequente: Task mal fragmentada
+Indício de fragilidade estrutural? (Sim/Não) Sim
+Sugestão de melhoria no:
+- PRD: Nenhuma.
+- TechSpec: Explicitar de forma única se `allowedPrefix` pode ou não conter hífen e alinhar a regex de permissões ao contrato escolhido.
+- Template de Task: Adicionar checagem explícita de compatibilidade entre regex de criação do módulo e regex do catálogo quando houver binding por prefixo.
+- Skill: Incluir validação explícita de consistência entre convenções de naming e regex cruzadas em revisões Java/REST.
+
+## [2026-04-17] | PRD: prd-authz-platform | Task: 7.0
+
+Modelo utilizado:
+GPT-5.4
+
+### Problemas Identificados
+
+Zero Defects Identified
+Iterações até estabilização: 1
+
+### Resumo da Tarefa
+
+Total de Problemas: 0
+Categoria Técnica mais frequente: N/A
+Origem mais frequente: N/A
+Indício de fragilidade estrutural? (Sim/Não) Não
+Sugestão de melhoria no:
+- PRD: Nenhuma.
+- TechSpec: Nenhuma.
+- Template de Task: Nenhuma.
+- Skill: Nenhuma.

@@ -6,6 +6,8 @@ import com.platform.authz.modules.domain.ModuleActiveKeyNotFoundException;
 import com.platform.authz.modules.domain.ModuleAlreadyExistsException;
 import com.platform.authz.modules.domain.ModuleConflictException;
 import com.platform.authz.modules.domain.ModuleNotFoundException;
+import com.platform.authz.shared.exception.InvalidModuleAuthenticationException;
+import com.platform.authz.shared.exception.ModuleIdMismatchException;
 import com.platform.authz.shared.exception.PrefixViolationException;
 import com.platform.authz.shared.exception.UnauthorizedModuleKeyException;
 import jakarta.persistence.EntityNotFoundException;
@@ -94,6 +96,34 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(InvalidModuleAuthenticationException.class)
+    public ResponseEntity<ProblemDetail> handleInvalidModuleAuthentication(
+            InvalidModuleAuthenticationException exception,
+            HttpServletRequest request
+    ) {
+        return problemDetailFactory.buildResponse(
+                HttpStatus.UNAUTHORIZED,
+                "invalid-module-authentication",
+                "Unauthorized",
+                exception.getMessage(),
+                request
+        );
+    }
+
+    @ExceptionHandler(ModuleIdMismatchException.class)
+    public ResponseEntity<ProblemDetail> handleModuleIdMismatch(
+            ModuleIdMismatchException exception,
+            HttpServletRequest request
+    ) {
+        return problemDetailFactory.buildResponse(
+                HttpStatus.FORBIDDEN,
+                "module-id-mismatch",
+                "Forbidden",
+                exception.getMessage(),
+                request
+        );
+    }
+
     @ExceptionHandler(PrefixViolationException.class)
     public ResponseEntity<ProblemDetail> handlePrefixViolation(PrefixViolationException exception, HttpServletRequest request) {
         return problemDetailFactory.buildResponse(
@@ -111,7 +141,7 @@ public class GlobalExceptionHandler {
             HttpServletRequest request
     ) {
         ProblemDetail problemDetail = problemDetailFactory.create(
-                HttpStatus.BAD_REQUEST,
+                HttpStatus.UNPROCESSABLE_ENTITY,
                 "validation-error",
                 "Validation error",
                 "Request validation failed",
@@ -123,7 +153,7 @@ public class GlobalExceptionHandler {
         );
         problemDetail.setProperty("errors", errors);
 
-        return ResponseEntity.badRequest()
+        return ResponseEntity.unprocessableEntity()
                 .contentType(org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON)
                 .body(problemDetail);
     }
@@ -134,7 +164,7 @@ public class GlobalExceptionHandler {
             HttpServletRequest request
     ) {
         ProblemDetail problemDetail = problemDetailFactory.create(
-                HttpStatus.BAD_REQUEST,
+                HttpStatus.UNPROCESSABLE_ENTITY,
                 "validation-error",
                 "Validation error",
                 "Request validation failed",
@@ -149,7 +179,7 @@ public class GlobalExceptionHandler {
         );
         problemDetail.setProperty("errors", errors);
 
-        return ResponseEntity.badRequest()
+        return ResponseEntity.unprocessableEntity()
                 .contentType(org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON)
                 .body(problemDetail);
     }

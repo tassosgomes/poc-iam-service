@@ -2,5 +2,6 @@ package com.platform.authz.audit.domain;
 
 public enum AuditEventType {
     MODULE_CREATED,
-    KEY_ROTATED
+    KEY_ROTATED,
+    CATALOG_SYNC
 }

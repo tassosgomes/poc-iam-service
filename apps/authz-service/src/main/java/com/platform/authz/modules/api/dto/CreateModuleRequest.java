@@ -1,5 +1,6 @@
 package com.platform.authz.modules.api.dto;
 
+import com.platform.authz.shared.domain.ValidationPatterns;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -11,8 +12,8 @@ public record CreateModuleRequest(
 
         @NotBlank(message = "allowedPrefix is required")
         @Pattern(
-                regexp = "^[a-z][a-z0-9-]{1,30}$",
-                message = "allowedPrefix must match ^[a-z][a-z0-9-]{1,30}$"
+                regexp = ValidationPatterns.ALLOWED_PREFIX_REGEX,
+                message = "allowedPrefix must match " + ValidationPatterns.ALLOWED_PREFIX_REGEX
         )
         String allowedPrefix,
 
