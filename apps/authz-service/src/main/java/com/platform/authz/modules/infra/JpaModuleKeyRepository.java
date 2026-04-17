@@ -3,6 +3,7 @@ package com.platform.authz.modules.infra;
 import com.platform.authz.modules.domain.ModuleKey;
 import com.platform.authz.modules.domain.ModuleKeyRepository;
 import com.platform.authz.modules.domain.ModuleKeyStatus;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -89,6 +90,13 @@ public class JpaModuleKeyRepository implements ModuleKeyRepository {
                 ).stream()
                 .findFirst()
                 .map(moduleKeyEntityMapper::toDomain);
+    }
+
+    @Override
+    public List<ModuleKey> findActiveOrInGraceByModuleId(UUID moduleId, Instant referenceTime) {
+        return springDataModuleKeyRepository.findActiveOrInGraceByModuleId(moduleId, referenceTime).stream()
+                .map(moduleKeyEntityMapper::toDomain)
+                .toList();
     }
 
     @Override

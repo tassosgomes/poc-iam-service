@@ -324,3 +324,45 @@ Sugestão de melhoria no:
 - PRD: Nenhuma.
 - TechSpec: Incluir orientação explícita de isolamento de dados em testes de integração com Testcontainers (apontado na iteração 2 — confirmar se já incorporado).
 - Template de Task: Subtarefa 5.8 poderia incluir critério explícito de "dados únicos por caso" para suites com container estático.
+
+---
+
+## [2026-04-17] | PRD: prd-authz-platform | Task: 6.0
+
+Modelo utilizado:
+(Preenchido pelo Orquestrador)
+
+### Problemas Identificados
+
+1. Categoria Técnica: Teste inadequado
+   Severidade: Média
+   Fase Detectada: Revisão
+   Origem Provável: Task mal fragmentada
+   Necessitou Reimplementação Significativa? Não
+   Descrição: `ValidateModuleKeyServiceTest` não cobre o branch em que `candidateKeys` é não-vazio mas nenhum hash bate com o segredo, resultando em `UnauthorizedModuleKeyException("invalid")`. O caso "secret incorreto para módulo válido" não foi listado explicitamente na subtarefa 6.7.
+
+2. Categoria Técnica: Violação de padrão arquitetural
+   Severidade: Baixa
+   Fase Detectada: Revisão
+   Origem Provável: Lacuna na TechSpec
+   Necessitou Reimplementação Significativa? Não
+   Descrição: A TechSpec define a métrica como `authz_module_key_invalid_total{module}`, mas a task 6.6 e o código implementado usam `authz_module_key_invalid_total{reason}`. Trecho afetado: linha da TechSpec que descreve a métrica customizada.
+
+3. Categoria Técnica: Teste inadequado
+   Severidade: Baixa
+   Fase Detectada: Revisão
+   Origem Provável: Task mal fragmentada
+   Necessitou Reimplementação Significativa? Não
+   Descrição: `PermissionPrefixValidator` foi criado sem cobertura de teste unitário. Possui edge cases (prefix vazio, código exato igual ao prefix sem ponto). Deve ser coberto na Task 7.0.
+
+### Resumo da Tarefa
+
+Total de Problemas: 3
+Categoria Técnica mais frequente: Teste inadequado
+Origem mais frequente: Task mal fragmentada
+Indício de fragilidade estrutural? (Sim/Não) Não
+Sugestão de melhoria no:
+- PRD: Nenhuma.
+- TechSpec: Corrigir o label da métrica de `{module}` para `{reason}` no trecho que define `authz_module_key_invalid_total`.
+- Template de Task: Ao listar cenários de teste em subtarefas de autenticação, incluir explicitamente o caso "credencial inválida para entidade existente" (wrong secret, known entity), que é o cenário de ataque primário e costuma ser omitido quando a atenção vai para casos de "não encontrado".
+- Skill: Nenhuma.

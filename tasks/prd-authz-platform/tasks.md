@@ -61,7 +61,7 @@ CI/CD GitHub Actions, publicação dos SDKs em GitHub Packages, suíte E2E Playw
 - [X] 3.0 AuthZ Service: bootstrap Spring Boot e configurações base
 - [X] 4.0 AuthZ Service: schema Postgres e migrations Flyway
 - [X] 5.0 Módulo `modules`: domain, repositórios e API admin (criar/rotacionar chave)
-- [ ] 6.0 Filtro de autenticação por bearer de módulo + GlobalExceptionHandler ProblemDetails
+- [X] 6.0 Filtro de autenticação por bearer de módulo + GlobalExceptionHandler ProblemDetails
 - [ ] 7.0 Módulo `catalog`: endpoint `POST /v1/catalog/sync` idempotente com prefix binding
 - [ ] 8.0 Integração CyberArk: validação de JWT e proxy de busca de usuários
 - [ ] 9.0 Módulo `iam`: domain Role/UserRole + API CRUD de roles

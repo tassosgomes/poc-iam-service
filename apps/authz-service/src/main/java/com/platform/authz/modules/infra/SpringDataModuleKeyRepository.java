@@ -2,6 +2,7 @@ package com.platform.authz.modules.infra;
 
 import com.platform.authz.modules.domain.ModuleKeyStatus;
 import jakarta.persistence.LockModeType;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -36,4 +37,19 @@ public interface SpringDataModuleKeyRepository extends JpaRepository<ModuleKeyEn
     );
 
     List<ModuleKeyEntity> findByModuleIdOrderByCreatedAtDesc(UUID moduleId);
+
+    @Query("""
+            select moduleKey
+            from ModuleKeyEntity moduleKey
+            where moduleKey.moduleId = :moduleId
+              and (
+                  moduleKey.status = com.platform.authz.modules.domain.ModuleKeyStatus.ACTIVE
+                  or (
+                      moduleKey.status = com.platform.authz.modules.domain.ModuleKeyStatus.SUPERSEDED
+                      and moduleKey.graceExpiresAt > :referenceTime
+                  )
+              )
+            order by moduleKey.createdAt desc
+            """)
+    List<ModuleKeyEntity> findActiveOrInGraceByModuleId(UUID moduleId, Instant referenceTime);
 }

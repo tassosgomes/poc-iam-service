@@ -1,6 +1,7 @@
 package com.platform.authz.modules.domain;
 
 import java.util.Collection;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -19,6 +20,8 @@ public interface ModuleKeyRepository {
     Map<UUID, ModuleKey> findActiveByModuleIds(Collection<UUID> moduleIds);
 
     Optional<ModuleKey> findActiveByModuleIdForUpdate(UUID moduleId);
+
+    List<ModuleKey> findActiveOrInGraceByModuleId(UUID moduleId, Instant referenceTime);
 
     List<ModuleKey> findByModuleId(UUID moduleId);
 }
