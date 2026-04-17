@@ -10,6 +10,7 @@
 *.userosscache
 *.sln.docstates
 *.env
+.env.*
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
@@ -36,6 +37,11 @@ bld/
 
 # Build results on 'Bin' directories
 **/[Bb]in/*
+bin/
+obj/
+target/
+node_modules/
+dist/
 # Uncomment if you have tasks that rely on *.refresh files to move binaries
 # (https://github.com/github/gitignore/pull/3736)
 #!**/[Bb]in/*.refresh
