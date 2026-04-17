@@ -57,7 +57,7 @@ CI/CD GitHub Actions, publicação dos SDKs em GitHub Packages, suíte E2E Playw
 ## Tarefas
 
 - [X] 1.0 Setup do monorepo (pnpm + Turborepo + Maven parent + .NET solution)
-- [X] 2.0 Docker Compose base + mock CyberArk + nginx gateway
+- [x] 2.0 Docker Compose base + mock CyberArk + nginx gateway
 - [ ] 3.0 AuthZ Service: bootstrap Spring Boot e configurações base
 - [ ] 4.0 AuthZ Service: schema Postgres e migrations Flyway
 - [ ] 5.0 Módulo `modules`: domain, repositórios e API admin (criar/rotacionar chave)
