@@ -71,7 +71,7 @@ CI/CD GitHub Actions, publicação dos SDKs em GitHub Packages, suíte E2E Playw
 - [x] 13.0 Módulo `audit`: persistência, integração @Async em handlers e endpoint de consulta
 - [x] 14.0 Lifecycle: StaleModuleDetector e deprecation de permissões (RF-12 + RF-16 stale)
 - [x] 15.0 SDK Java: AuthzClient + cache por requisição + auto-config
-- [ ] 16.0 SDK Java: anotação `@HasPermission` + Aspect AOP
+- [x] 16.0 SDK Java: anotação `@HasPermission` + Aspect AOP
 - [ ] 17.0 SDK Java: SelfRegistrationRunner + ReadinessGate + HeartbeatScheduler
 - [ ] 18.0 Demo MS Java (vendas): endpoints protegidos + permissions.yaml
 - [ ] 19.0 SDK .NET: IAuthzClient + RequestPermissionCache + DI extensions

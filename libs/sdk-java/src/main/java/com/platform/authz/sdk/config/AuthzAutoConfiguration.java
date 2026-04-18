@@ -5,6 +5,8 @@ import com.platform.authz.sdk.AuthzAccessTokenProvider;
 import com.platform.authz.sdk.AuthzClientImpl;
 import com.platform.authz.sdk.AuthzProperties;
 import com.platform.authz.sdk.RequestContextAccessTokenProvider;
+import com.platform.authz.sdk.aop.HasPermissionAspect;
+import com.platform.authz.sdk.aop.PermissionMatcher;
 import com.platform.authz.sdk.cache.RequestScopedPermissionCache;
 import com.platform.authz.sdk.exception.AuthzClientException;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
@@ -92,6 +94,21 @@ public class AuthzAutoConfiguration {
     @ConditionalOnMissingBean(RequestScopedPermissionCache.class)
     public RequestScopedPermissionCache requestScopedPermissionCache(AuthzClient authzClient) {
         return new RequestScopedPermissionCache(authzClient);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(PermissionMatcher.class)
+    public PermissionMatcher permissionMatcher() {
+        return new PermissionMatcher();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(HasPermissionAspect.class)
+    public HasPermissionAspect hasPermissionAspect(
+            RequestScopedPermissionCache requestScopedPermissionCache,
+            PermissionMatcher permissionMatcher
+    ) {
+        return new HasPermissionAspect(requestScopedPermissionCache, permissionMatcher);
     }
 
     @Bean
