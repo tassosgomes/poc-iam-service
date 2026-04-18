@@ -735,3 +735,58 @@ Sugestão de melhoria no:
 - TechSpec: Incluir explicitamente a exigência de publicação de audit somente após commit da transação principal (pattern afterCommit). Mencionar necessidade de índice para filtros JSONB em endpoints de consulta.
 - Template de Task: Quando a task envolver publicação assíncrona de eventos dentro de contexto transacional, exigir explicitamente o pattern de deferred dispatch (afterCommit).
 - Skill: Adicionar checagem para uso de @Async dentro de boundaries transacionais — alertar sobre risco de eventos fantasma em caso de rollback.
+
+## [2026-04-17] | PRD: prd-authz-platform | Task: 15
+
+Modelo utilizado:
+GPT-5.4 + reviewer subagent
+
+### Problemas Identificados
+
+1. Categoria Técnica: Erro de integração
+   Severidade: Alta
+   Fase Detectada: Revisão
+   Origem Provável: Lacuna na TechSpec
+   Necessitou Reimplementação Significativa? Sim
+   Descrição: `libs/sdk-java/src/main/java/com/platform/authz/sdk/AuthzClientImpl.java` autentica `GET /v1/users/{id}/permissions` e `POST /v1/authz/check` com header `X-Module-Key`, mas `apps/authz-service/src/main/java/com/platform/authz/config/SecurityConfig.java` aceita autenticação por chave de módulo apenas em `/v1/catalog/**`; os endpoints AuthZ exigem JWT. Isso quebra a integração runtime de RF-10. Trecho estrutural afetado: `tasks/prd-authz-platform/techspec.md` traz ambiguidade entre o diagrama com Bearer de módulo e a seção de endpoints AuthZ com JWT de usuário.
+
+2. Categoria Técnica: Teste inadequado
+   Severidade: Média
+   Fase Detectada: Revisão
+   Origem Provável: Skill insuficiente
+   Necessitou Reimplementação Significativa? Não
+   Descrição: A cobertura exigida para `503 + retry` não valida retry real. `AuthzClientImpl` é instanciado com `new` em `libs/sdk-java/src/test/java/com/platform/authz/sdk/AuthzClientImplTest.java`, sem proxy Spring/AOP, então `@Retry` e `@CircuitBreaker` não são exercitados. O teste prova apenas falha em 503, não múltiplas tentativas com backoff.
+
+### Resumo da Tarefa
+
+Total de Problemas: 2
+Categoria Técnica mais frequente: Erro de integração
+Origem mais frequente: Lacuna na TechSpec
+Indício de fragilidade estrutural? (Sim/Não) Sim
+Sugestão de melhoria no:
+- PRD: Nenhuma.
+- TechSpec: Harmonizar explicitamente o contrato de autenticação do SDK Java para `GET /v1/users/{id}/permissions` e `POST /v1/authz/check`, removendo a ambiguidade entre o diagrama e a seção de endpoints; indicar o header/token esperado pelo cliente.
+- Template de Task: Quando exigir “503 + retry”, especificar se a evidência deve ser unitária ou de integração com proxy/AOP ativo.
+- Skill: Adicionar à `java-testing` um padrão explícito para validar anotações Resilience4j em testes de integração.
+
+## [2026-04-18] | PRD: prd-authz-platform | Task: 15
+
+Modelo utilizado:
+GPT-5.4
+
+### Problemas Identificados
+
+Zero Defects Identified
+Iterações até estabilização: 2
+
+### Resumo da Tarefa
+
+Total de Problemas: 0
+Categoria Técnica mais frequente: N/A
+Origem mais frequente: N/A
+Indício de fragilidade estrutural? (Sim/Não) Não
+Sugestão de melhoria no:
+- PRD: Nenhuma.
+- TechSpec: Harmonizar o diagrama/resumo executivo com a seção de endpoints para explicitar JWT de usuário em runtime e bearer de módulo no sync.
+- Template de Task: Nenhuma.
+- Skill: Nenhuma.
