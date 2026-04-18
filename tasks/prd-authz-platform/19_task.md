@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 parallelizable: true
 blocked_by: [7.0]
 ---
@@ -58,11 +58,11 @@ Espelho .NET do SDK Java: `IAuthzClient` (HttpClient com Polly), `RequestPermiss
 
 ## Subtarefas
 
-- [ ] 19.1 csproj + dependências NuGet (Polly, Microsoft.Extensions.*)
-- [ ] 19.2 `IAuthzClient` + impl com `IHttpClientFactory` + Polly policy
-- [ ] 19.3 `RequestPermissionCache` scoped
-- [ ] 19.4 `AddAuthzSdk` extension
-- [ ] 19.5 Testes com `WireMock.Net` para HTTP isolation
+- [x] 19.1 csproj + dependências NuGet (Polly, Microsoft.Extensions.*)
+- [x] 19.2 `IAuthzClient` + impl com `IHttpClientFactory` + Polly policy
+- [x] 19.3 `RequestPermissionCache` scoped
+- [x] 19.4 `AddAuthzSdk` extension
+- [x] 19.5 Testes com `WireMock.Net` para HTTP isolation
 
 ## Sequenciamento
 
@@ -98,7 +98,16 @@ public static IServiceCollection AddAuthzSdk(this IServiceCollection services, I
 
 ## Critérios de Sucesso (Verificáveis)
 
-- [ ] `dotnet test libs/sdk-dotnet/AuthzSdk.Tests` passa
-- [ ] `dotnet pack libs/sdk-dotnet/AuthzSdk` produz `.nupkg`
-- [ ] Registro via `AddAuthzSdk` funciona em Program.cs de teste
-- [ ] Cache scoped: 2 chamadas no mesmo request → 1 HTTP call (validável via WireMock)
+- [x] `dotnet test libs/sdk-dotnet/AuthzSdk.Tests` passa
+- [x] `dotnet pack libs/sdk-dotnet/AuthzSdk` produz `.nupkg`
+- [x] Registro via `AddAuthzSdk` funciona em Program.cs de teste
+- [x] Cache scoped: 2 chamadas no mesmo request → 1 HTTP call (validável via WireMock)
+
+## Conclusão
+
+- [x] 19.0 SDK .NET — IAuthzClient + RequestPermissionCache + DI extensions ✅ CONCLUÍDA
+  - [x] 19.1 Implementação completada
+  - [x] 19.2 Definição da tarefa, PRD e tech spec validados
+  - [x] 19.3 Análise de regras e conformidade verificadas
+  - [x] 19.4 Revisão de código completada
+  - [x] 19.5 Pronto para deploy
