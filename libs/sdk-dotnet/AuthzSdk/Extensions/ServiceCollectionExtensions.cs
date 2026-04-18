@@ -1,7 +1,10 @@
 using System.Net;
+using AuthzSdk.Authorization;
 using AuthzSdk.Caching;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Http.Resilience;
 using Microsoft.Extensions.Options;
 using Polly;
@@ -48,6 +51,10 @@ public static class ServiceCollectionExtensions
             });
 
         services.AddScoped<RequestPermissionCache>();
+
+        services.TryAddSingleton<IAuthorizationPolicyProvider, PermissionPolicyProvider>();
+        services.AddScoped<IAuthorizationHandler, HasPermissionHandler>();
+
         return services;
     }
 

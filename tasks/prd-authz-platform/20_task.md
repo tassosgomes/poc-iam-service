@@ -50,11 +50,11 @@ Guard declarativo idiomático ASP.NET Core: `[HasPermission("estoque.inventory.v
 
 ## Subtarefas
 
-- [ ] 20.1 Attribute + Requirement
-- [ ] 20.2 PolicyProvider dinâmico
-- [ ] 20.3 Handler usando cache scoped
-- [ ] 20.4 PermissionMatcher (mesma lógica wildcard do Java)
-- [ ] 20.5 Testes
+- [x] 20.1 Attribute + Requirement
+- [x] 20.2 PolicyProvider dinâmico
+- [x] 20.3 Handler usando cache scoped
+- [x] 20.4 PermissionMatcher (mesma lógica wildcard do Java)
+- [x] 20.5 Testes
 
 ## Sequenciamento
 
@@ -88,7 +88,16 @@ public class InventoryController : ControllerBase
 
 ## Critérios de Sucesso (Verificáveis)
 
-- [ ] Testes passam
-- [ ] Action sem permissão → 403
-- [ ] Wildcard `estoque.*` casa `estoque.inventory.view`
-- [ ] Sem auth → 401
+- [x] Testes passam
+- [x] Action sem permissão → 403
+- [x] Wildcard `estoque.*` casa `estoque.inventory.view`
+- [x] Sem auth → 401
+
+## Conclusão
+
+- [x] 20.0 SDK .NET — `[HasPermission]` attribute + AuthorizationHandler ✅ CONCLUÍDA
+  - [x] 20.1 Implementação completada
+  - [x] 20.2 Definição da tarefa, PRD e tech spec validados
+  - [x] 20.3 Análise de regras e conformidade verificadas
+  - [x] 20.4 Revisão de código completada
+  - [x] 20.5 Pronto para deploy

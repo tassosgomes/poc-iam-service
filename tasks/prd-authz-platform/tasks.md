@@ -75,7 +75,7 @@ CI/CD GitHub Actions, publicação dos SDKs em GitHub Packages, suíte E2E Playw
 - [x] 17.0 SDK Java: SelfRegistrationRunner + ReadinessGate + HeartbeatScheduler
 - [X] 18.0 Demo MS Java (vendas): endpoints protegidos + permissions.yaml
 - [X] 19.0 SDK .NET: IAuthzClient + RequestPermissionCache + DI extensions
-- [ ] 20.0 SDK .NET: `[HasPermission]` attribute + AuthorizationHandler
+- [x] 20.0 SDK .NET: `[HasPermission]` attribute + AuthorizationHandler
 - [ ] 21.0 SDK .NET: SelfRegistrationHostedService + HeartbeatHostedService
 - [ ] 22.0 Demo MS .NET (estoque): endpoints protegidos + permissions.yaml
 - [ ] 23.0 SDK React: AuthzProvider + hooks `usePermission` + `<IfPermitted>`
