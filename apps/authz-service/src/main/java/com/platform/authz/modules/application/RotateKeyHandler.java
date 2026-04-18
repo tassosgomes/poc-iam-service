@@ -1,6 +1,6 @@
 package com.platform.authz.modules.application;
 
-import com.platform.authz.audit.application.RecordAuditEvent;
+import com.platform.authz.audit.application.AuditEventPublisher;
 import com.platform.authz.audit.domain.AuditEvent;
 import com.platform.authz.audit.domain.AuditEventType;
 import com.platform.authz.modules.domain.Module;
@@ -35,20 +35,20 @@ public class RotateKeyHandler {
     private final ModuleRepository moduleRepository;
     private final ModuleKeyRepository moduleKeyRepository;
     private final ModuleKeyHasher moduleKeyHasher;
-    private final RecordAuditEvent recordAuditEvent;
+    private final AuditEventPublisher auditEventPublisher;
     private final Clock clock;
 
     public RotateKeyHandler(
             ModuleRepository moduleRepository,
             ModuleKeyRepository moduleKeyRepository,
             ModuleKeyHasher moduleKeyHasher,
-            RecordAuditEvent recordAuditEvent,
+            AuditEventPublisher auditEventPublisher,
             Clock clock
     ) {
         this.moduleRepository = Objects.requireNonNull(moduleRepository, "moduleRepository must not be null");
         this.moduleKeyRepository = Objects.requireNonNull(moduleKeyRepository, "moduleKeyRepository must not be null");
         this.moduleKeyHasher = Objects.requireNonNull(moduleKeyHasher, "moduleKeyHasher must not be null");
-        this.recordAuditEvent = Objects.requireNonNull(recordAuditEvent, "recordAuditEvent must not be null");
+        this.auditEventPublisher = Objects.requireNonNull(auditEventPublisher, "auditEventPublisher must not be null");
         this.clock = Objects.requireNonNull(clock, "clock must not be null");
     }
 
@@ -72,7 +72,7 @@ public class RotateKeyHandler {
 
         moduleKeyRepository.saveAndFlush(supersededKey);
         moduleKeyRepository.save(rotatedKey);
-        recordAuditEvent.record(buildKeyRotatedAuditEvent(command, rotatedKey, graceExpiresAt));
+        auditEventPublisher.publish(buildKeyRotatedAuditEvent(command, rotatedKey, graceExpiresAt));
 
         LOGGER.info("module.key-rotated moduleId={} keyId={} actor={}", module.id(), rotatedKey.id(), command.rotatedBy());
 

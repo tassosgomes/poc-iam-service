@@ -7,7 +7,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.platform.authz.audit.application.RecordAuditEvent;
+import com.platform.authz.audit.application.AuditEventPublisher;
 import com.platform.authz.audit.domain.AuditEvent;
 import com.platform.authz.audit.domain.AuditEventType;
 import com.platform.authz.modules.domain.Module;
@@ -41,7 +41,7 @@ class CreateModuleHandlerTest {
     private ModuleKeyHasher moduleKeyHasher;
 
     @Mock
-    private RecordAuditEvent recordAuditEvent;
+    private AuditEventPublisher auditEventPublisher;
 
     private CreateModuleHandler handler;
 
@@ -51,7 +51,7 @@ class CreateModuleHandlerTest {
                 moduleRepository,
                 moduleKeyRepository,
                 moduleKeyHasher,
-                recordAuditEvent,
+                auditEventPublisher,
                 Clock.fixed(Instant.parse("2026-04-17T04:00:00Z"), ZoneOffset.UTC)
         );
     }
@@ -84,7 +84,7 @@ class CreateModuleHandlerTest {
         verify(moduleRepository).save(moduleCaptor.capture());
         verify(moduleKeyRepository).save(moduleKeyCaptor.capture());
         verify(moduleKeyHasher).hash(secretCaptor.capture());
-        verify(recordAuditEvent).record(auditEventCaptor.capture());
+        verify(auditEventPublisher).publish(auditEventCaptor.capture());
 
         Module persistedModule = moduleCaptor.getValue();
         ModuleKey persistedKey = moduleKeyCaptor.getValue();
@@ -130,7 +130,7 @@ class CreateModuleHandlerTest {
 
         verify(moduleRepository, never()).save(any(Module.class));
         verify(moduleKeyRepository, never()).save(any(ModuleKey.class));
-        verify(recordAuditEvent, never()).record(any(AuditEvent.class));
+        verify(auditEventPublisher, never()).publish(any(AuditEvent.class));
     }
 
     @Test
@@ -153,6 +153,6 @@ class CreateModuleHandlerTest {
                 .hasMessage("Module name or allowedPrefix already exists");
 
         verify(moduleKeyRepository, never()).save(any(ModuleKey.class));
-        verify(recordAuditEvent, never()).record(any(AuditEvent.class));
+        verify(auditEventPublisher, never()).publish(any(AuditEvent.class));
     }
 }

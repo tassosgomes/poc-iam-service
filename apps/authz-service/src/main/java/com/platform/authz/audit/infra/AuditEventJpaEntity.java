@@ -15,7 +15,7 @@ import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "audit_event")
-public class AuditEventEntity {
+public class AuditEventJpaEntity {
 
     @Id
     private UUID id;
@@ -40,7 +40,7 @@ public class AuditEventEntity {
     @Column(name = "occurred_at", nullable = false)
     private Instant occurredAt;
 
-    protected AuditEventEntity() {
+    protected AuditEventJpaEntity() {
     }
 
     public UUID getId() {

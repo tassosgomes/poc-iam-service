@@ -3,9 +3,13 @@ package com.platform.authz.shared.security;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.platform.authz.audit.application.AuditEventPublisher;
+import com.platform.authz.audit.domain.AuditEvent;
+import com.platform.authz.audit.domain.AuditEventType;
 import com.platform.authz.modules.application.ValidateModuleKeyService;
 import com.platform.authz.shared.api.RequestMetadataResolver;
 import com.platform.authz.shared.exception.UnauthorizedModuleKeyException;
@@ -14,6 +18,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import java.io.IOException;
+import java.time.Clock;
 import java.time.Instant;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.BeforeEach;
@@ -40,6 +45,9 @@ class ModuleBearerAuthenticationFilterTest {
     @Mock
     private HandlerExceptionResolver handlerExceptionResolver;
 
+    @Mock
+    private AuditEventPublisher auditEventPublisher;
+
     private SimpleMeterRegistry meterRegistry;
     private ModuleBearerAuthenticationFilter filter;
 
@@ -50,7 +58,9 @@ class ModuleBearerAuthenticationFilterTest {
                 validateModuleKeyService,
                 requestMetadataResolver,
                 handlerExceptionResolver,
-                meterRegistry
+                meterRegistry,
+                auditEventPublisher,
+                Clock.fixed(Instant.parse("2026-04-17T21:00:00Z"), java.time.ZoneOffset.UTC)
         );
         SecurityContextHolder.clearContext();
     }
@@ -78,6 +88,7 @@ class ModuleBearerAuthenticationFilterTest {
         assertThat(authenticationReference.get()).isInstanceOf(ModuleAuthenticationToken.class);
         assertThat(authenticationReference.get().getPrincipal()).isEqualTo(moduleContext);
         assertThat(response.getStatus()).isEqualTo(200);
+        verify(auditEventPublisher, never()).publish(any(AuditEvent.class));
     }
 
     @Test
@@ -98,10 +109,34 @@ class ModuleBearerAuthenticationFilterTest {
                 isNull(),
                 any(UnauthorizedModuleKeyException.class)
         );
+        verify(auditEventPublisher).publish(any(AuditEvent.class));
         assertThat(meterRegistry.get("authz_module_key_invalid_total")
                 .tag("reason", "not_found")
                 .counter()
                 .count()).isEqualTo(1.0d);
+    }
+
+    @Test
+    void doFilterInternal_WithInvalidModuleKey_ShouldPublishKeyAuthFailedAuditEvent() throws Exception {
+        // Arrange
+        MockHttpServletRequest request = new MockHttpServletRequest("POST", "/v1/catalog/sync");
+        request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer invalid-secret");
+        request.addHeader("X-Module-Id", "98ec60dc-bf84-4540-b863-da1452682f8b");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        when(validateModuleKeyService.validate("98ec60dc-bf84-4540-b863-da1452682f8b", "invalid-secret"))
+                .thenThrow(new UnauthorizedModuleKeyException("not_found"));
+        when(requestMetadataResolver.resolveSourceIp(request)).thenReturn("10.0.0.20");
+        org.mockito.ArgumentCaptor<AuditEvent> auditEventCaptor = org.mockito.ArgumentCaptor.forClass(AuditEvent.class);
+
+        // Act
+        filter.doFilter(request, response, new NoOpFilterChain());
+
+        // Assert
+        verify(auditEventPublisher).publish(auditEventCaptor.capture());
+        assertThat(auditEventCaptor.getValue().eventType()).isEqualTo(AuditEventType.KEY_AUTH_FAILED);
+        assertThat(auditEventCaptor.getValue().target()).isEqualTo("98ec60dc-bf84-4540-b863-da1452682f8b");
+        assertThat(auditEventCaptor.getValue().payload()).containsEntry("moduleId", "98ec60dc-bf84-4540-b863-da1452682f8b");
+        assertThat(auditEventCaptor.getValue().payload()).containsEntry("reason", "not_found");
     }
 
     @Test

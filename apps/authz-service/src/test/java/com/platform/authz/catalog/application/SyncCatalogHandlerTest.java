@@ -8,7 +8,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.platform.authz.audit.application.RecordAuditEvent;
+import com.platform.authz.audit.application.AuditEventPublisher;
 import com.platform.authz.audit.domain.AuditEvent;
 import com.platform.authz.audit.domain.AuditEventType;
 import com.platform.authz.catalog.domain.Permission;
@@ -63,7 +63,7 @@ class SyncCatalogHandlerTest {
     private SyncEventRepository syncEventRepository;
 
     @Mock
-    private RecordAuditEvent recordAuditEvent;
+    private AuditEventPublisher auditEventPublisher;
 
     private PermissionPrefixValidator permissionPrefixValidator;
     private SimpleMeterRegistry meterRegistry;
@@ -78,7 +78,7 @@ class SyncCatalogHandlerTest {
                 permissionRepository,
                 syncEventRepository,
                 permissionPrefixValidator,
-                recordAuditEvent,
+                auditEventPublisher,
                 meterRegistry,
                 Clock.fixed(NOW, ZoneOffset.UTC)
         );
@@ -164,7 +164,7 @@ class SyncCatalogHandlerTest {
 
         verify(moduleRepository).updateLastHeartbeatAt(eq(MODULE_ID), eq(NOW));
         verify(syncEventRepository).save(any(SyncEvent.class));
-        verify(recordAuditEvent).record(any(AuditEvent.class));
+        verify(auditEventPublisher).publish(any(AuditEvent.class));
 
         // Verify metric
         double addedMetric = meterRegistry.counter("authz_catalog_sync_total", "module", MODULE_NAME, "result", "added").count();
@@ -491,7 +491,7 @@ class SyncCatalogHandlerTest {
 
         // Assert
         ArgumentCaptor<AuditEvent> auditCaptor = ArgumentCaptor.forClass(AuditEvent.class);
-        verify(recordAuditEvent).record(auditCaptor.capture());
+        verify(auditEventPublisher).publish(auditCaptor.capture());
 
         AuditEvent auditEvent = auditCaptor.getValue();
         assertThat(auditEvent.eventType()).isEqualTo(AuditEventType.CATALOG_SYNC);

@@ -693,3 +693,45 @@ Sugestão de melhoria no:
 - TechSpec: Alinhar o nome da métrica de cache hit ratio com a implementação para evitar ambiguidade documental.
 - Template de Task: Nenhuma.
 - Skill: Nenhuma.
+
+## [2026-04-17] | PRD: prd-authz-platform | Task: 13.0
+
+Modelo utilizado:
+GPT-5.4 + reviewer subagent
+
+### Problemas Identificados (Iteração 1 → resolvidos na Iteração 2)
+
+1. Categoria Técnica: Lógica incorreta
+   Severidade: Alta
+   Fase Detectada: Revisão
+   Origem Provável: Limitação do modelo
+   Necessitou Reimplementação Significativa? Sim
+   Descrição: AuditEventPublisherImpl disparava audit via @Async dentro da transação principal, permitindo persistir eventos de operações que sofreram rollback. Corrigido com TransactionSynchronizationManager.registerSynchronization() + afterCommit().
+
+2. Categoria Técnica: Falha de validação
+   Severidade: Média
+   Fase Detectada: Revisão
+   Origem Provável: Contexto insuficiente
+   Necessitou Reimplementação Significativa? Não
+   Descrição: GlobalExceptionHandler não tratava BindException para @Valid @ModelAttribute, podendo retornar 500 em entradas inválidas. Corrigido com handler explícito retornando ProblemDetails 400.
+
+3. Categoria Técnica: Problema de performance
+   Severidade: Média
+   Fase Detectada: Revisão
+   Origem Provável: Lacuna na TechSpec
+   Necessitou Reimplementação Significativa? Não
+   Descrição: Filtro por moduleId (payload JSONB ->> 'moduleId') sem índice compatível. Corrigido com V7 migration criando btree index em (payload ->> 'moduleId', occurred_at DESC).
+
+Iterações até estabilização: 2
+
+### Resumo da Tarefa
+
+Total de Problemas: 3 (todos resolvidos na iteração 2)
+Categoria Técnica mais frequente: Lógica incorreta / Falha de validação
+Origem mais frequente: Limitação do modelo / Contexto insuficiente
+Indício de fragilidade estrutural? (Sim/Não) Não — problemas pontuais e esperados para um módulo transversal com async + tx control
+Sugestão de melhoria no:
+- PRD: Nenhuma.
+- TechSpec: Incluir explicitamente a exigência de publicação de audit somente após commit da transação principal (pattern afterCommit). Mencionar necessidade de índice para filtros JSONB em endpoints de consulta.
+- Template de Task: Quando a task envolver publicação assíncrona de eventos dentro de contexto transacional, exigir explicitamente o pattern de deferred dispatch (afterCommit).
+- Skill: Adicionar checagem para uso de @Async dentro de boundaries transacionais — alertar sobre risco de eventos fantasma em caso de rollback.

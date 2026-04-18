@@ -7,7 +7,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 
-import com.platform.authz.audit.application.RecordAuditEvent;
+import com.platform.authz.audit.application.AuditEventPublisher;
 import com.platform.authz.audit.domain.AuditEvent;
 import com.platform.authz.audit.domain.AuditEventType;
 import com.platform.authz.modules.domain.Module;
@@ -42,7 +42,7 @@ class RotateKeyHandlerTest {
     private ModuleKeyHasher moduleKeyHasher;
 
     @Mock
-    private RecordAuditEvent recordAuditEvent;
+    private AuditEventPublisher auditEventPublisher;
 
     private RotateKeyHandler handler;
 
@@ -52,7 +52,7 @@ class RotateKeyHandlerTest {
                 moduleRepository,
                 moduleKeyRepository,
                 moduleKeyHasher,
-                recordAuditEvent,
+                auditEventPublisher,
                 Clock.fixed(Instant.parse("2026-04-17T05:00:00Z"), ZoneOffset.UTC)
         );
     }
@@ -91,7 +91,7 @@ class RotateKeyHandlerTest {
         verify(moduleKeyRepository).saveAndFlush(supersededKeyCaptor.capture());
         verify(moduleKeyRepository).save(activeKeyCaptor.capture());
         verify(moduleKeyHasher).hash(secretCaptor.capture());
-        verify(recordAuditEvent).record(auditEventCaptor.capture());
+        verify(auditEventPublisher).publish(auditEventCaptor.capture());
 
         ModuleKey supersededKey = supersededKeyCaptor.getValue();
         ModuleKey newActiveKey = activeKeyCaptor.getValue();
@@ -138,6 +138,6 @@ class RotateKeyHandlerTest {
         assertThatThrownBy(() -> handler.handle(new RotateKeyCommand(moduleId, "user-admin", "10.0.0.20")))
                 .isInstanceOf(ModuleActiveKeyNotFoundException.class);
 
-        verify(recordAuditEvent, never()).record(any(AuditEvent.class));
+        verify(auditEventPublisher, never()).publish(any(AuditEvent.class));
     }
 }

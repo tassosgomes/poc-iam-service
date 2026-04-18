@@ -1,5 +1,8 @@
 package com.platform.authz.shared.security;
 
+import com.platform.authz.audit.application.AuditEventPublisher;
+import com.platform.authz.audit.domain.AuditEvent;
+import com.platform.authz.audit.domain.AuditEventType;
 import com.platform.authz.modules.application.ValidateModuleKeyService;
 import com.platform.authz.shared.api.RequestMetadataResolver;
 import com.platform.authz.shared.exception.UnauthorizedModuleKeyException;
@@ -9,7 +12,12 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.time.Clock;
+import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -27,12 +35,16 @@ public class ModuleBearerAuthenticationFilter extends OncePerRequestFilter {
     private final RequestMetadataResolver requestMetadataResolver;
     private final HandlerExceptionResolver handlerExceptionResolver;
     private final MeterRegistry meterRegistry;
+    private final AuditEventPublisher auditEventPublisher;
+    private final Clock clock;
 
     public ModuleBearerAuthenticationFilter(
             ValidateModuleKeyService validateModuleKeyService,
             RequestMetadataResolver requestMetadataResolver,
             HandlerExceptionResolver handlerExceptionResolver,
-            MeterRegistry meterRegistry
+            MeterRegistry meterRegistry,
+            AuditEventPublisher auditEventPublisher,
+            Clock clock
     ) {
         this.validateModuleKeyService = Objects.requireNonNull(
                 validateModuleKeyService,
@@ -47,6 +59,8 @@ public class ModuleBearerAuthenticationFilter extends OncePerRequestFilter {
                 "handlerExceptionResolver must not be null"
         );
         this.meterRegistry = Objects.requireNonNull(meterRegistry, "meterRegistry must not be null");
+        this.auditEventPublisher = Objects.requireNonNull(auditEventPublisher, "auditEventPublisher must not be null");
+        this.clock = Objects.requireNonNull(clock, "clock must not be null");
     }
 
     @Override
@@ -98,10 +112,36 @@ public class ModuleBearerAuthenticationFilter extends OncePerRequestFilter {
         };
 
         meterRegistry.counter("authz_module_key_invalid_total", "reason", metricReason).increment();
+        publishAuditFailure(reason, request);
         LOGGER.warn(
                 "key_auth_failed source_ip={} reason={}",
                 requestMetadataResolver.resolveSourceIp(request),
                 reason
         );
+    }
+
+    private void publishAuditFailure(String reason, HttpServletRequest request) {
+        String moduleId = normalize(request.getHeader(MODULE_ID_HEADER));
+        String sourceIp = requestMetadataResolver.resolveSourceIp(request);
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("reason", reason);
+        payload.put("path", request.getRequestURI());
+        if (moduleId != null) {
+            payload.put("moduleId", moduleId);
+        }
+
+        auditEventPublisher.publish(new AuditEvent(
+                UUID.randomUUID(),
+                AuditEventType.KEY_AUTH_FAILED,
+                null,
+                moduleId,
+                payload,
+                sourceIp,
+                Instant.now(clock)
+        ));
+    }
+
+    private String normalize(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
     }
 }

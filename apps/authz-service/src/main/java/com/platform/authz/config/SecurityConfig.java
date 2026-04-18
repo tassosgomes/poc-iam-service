@@ -1,6 +1,7 @@
 package com.platform.authz.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.platform.authz.audit.application.AuditEventPublisher;
 import com.platform.authz.modules.application.ValidateModuleKeyService;
 import com.platform.authz.shared.api.ProblemDetailFactory;
 import com.platform.authz.shared.api.RequestMetadataResolver;
@@ -9,6 +10,7 @@ import com.platform.authz.shared.security.ModuleBearerAuthenticationFilter;
 import io.micrometer.core.instrument.MeterRegistry;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.time.Clock;
 import java.util.Objects;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -35,13 +37,17 @@ public class SecurityConfig {
             ValidateModuleKeyService validateModuleKeyService,
             RequestMetadataResolver requestMetadataResolver,
             @Qualifier("handlerExceptionResolver") HandlerExceptionResolver handlerExceptionResolver,
-            MeterRegistry meterRegistry
+            MeterRegistry meterRegistry,
+            AuditEventPublisher auditEventPublisher,
+            Clock clock
     ) {
         return new ModuleBearerAuthenticationFilter(
                 validateModuleKeyService,
                 requestMetadataResolver,
                 handlerExceptionResolver,
-                meterRegistry
+                meterRegistry,
+                auditEventPublisher,
+                clock
         );
     }
 

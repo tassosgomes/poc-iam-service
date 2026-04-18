@@ -1,6 +1,6 @@
 package com.platform.authz.catalog.application;
 
-import com.platform.authz.audit.application.RecordAuditEvent;
+import com.platform.authz.audit.application.AuditEventPublisher;
 import com.platform.authz.audit.domain.AuditEvent;
 import com.platform.authz.audit.domain.AuditEventType;
 import com.platform.authz.catalog.domain.Permission;
@@ -42,7 +42,7 @@ public class SyncCatalogHandler {
     private final PermissionRepository permissionRepository;
     private final SyncEventRepository syncEventRepository;
     private final PermissionPrefixValidator permissionPrefixValidator;
-    private final RecordAuditEvent recordAuditEvent;
+    private final AuditEventPublisher auditEventPublisher;
     private final MeterRegistry meterRegistry;
     private final Clock clock;
 
@@ -51,7 +51,7 @@ public class SyncCatalogHandler {
             PermissionRepository permissionRepository,
             SyncEventRepository syncEventRepository,
             PermissionPrefixValidator permissionPrefixValidator,
-            RecordAuditEvent recordAuditEvent,
+            AuditEventPublisher auditEventPublisher,
             MeterRegistry meterRegistry,
             Clock clock
     ) {
@@ -62,7 +62,7 @@ public class SyncCatalogHandler {
                 permissionPrefixValidator,
                 "permissionPrefixValidator must not be null"
         );
-        this.recordAuditEvent = Objects.requireNonNull(recordAuditEvent, "recordAuditEvent must not be null");
+        this.auditEventPublisher = Objects.requireNonNull(auditEventPublisher, "auditEventPublisher must not be null");
         this.meterRegistry = Objects.requireNonNull(meterRegistry, "meterRegistry must not be null");
         this.clock = Objects.requireNonNull(clock, "clock must not be null");
     }
@@ -134,7 +134,7 @@ public class SyncCatalogHandler {
         syncEventRepository.save(syncEvent);
 
         // 9. Record audit event
-        recordAuditEvent.record(new AuditEvent(
+        auditEventPublisher.publish(new AuditEvent(
                 UUID.randomUUID(),
                 AuditEventType.CATALOG_SYNC,
                 "module:" + module.name(),

@@ -5,5 +5,6 @@ public enum AuditEventType {
     KEY_ROTATED,
     CATALOG_SYNC,
     ROLE_ASSIGNED,
-    ROLE_REVOKED
+    ROLE_REVOKED,
+    KEY_AUTH_FAILED
 }

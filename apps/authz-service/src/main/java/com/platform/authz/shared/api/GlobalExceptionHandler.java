@@ -33,6 +33,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.validation.BindException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -235,6 +236,32 @@ public class GlobalExceptionHandler {
         problemDetail.setProperty("errors", errors);
 
         return ResponseEntity.unprocessableEntity()
+                .contentType(org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON)
+                .body(problemDetail);
+    }
+
+    @ExceptionHandler(BindException.class)
+    public ResponseEntity<ProblemDetail> handleBindException(
+            BindException exception,
+            HttpServletRequest request
+    ) {
+        ProblemDetail problemDetail = problemDetailFactory.create(
+                HttpStatus.BAD_REQUEST,
+                "validation-error",
+                "Validation error",
+                "Request validation failed",
+                request
+        );
+        Map<String, String> errors = new LinkedHashMap<>();
+        exception.getBindingResult().getFieldErrors().forEach(fieldError ->
+                errors.put(
+                        fieldError.getField(),
+                        fieldError.getDefaultMessage() != null ? fieldError.getDefaultMessage() : "Invalid value"
+                )
+        );
+        problemDetail.setProperty("errors", errors);
+
+        return ResponseEntity.badRequest()
                 .contentType(org.springframework.http.MediaType.APPLICATION_PROBLEM_JSON)
                 .body(problemDetail);
     }

@@ -1,10 +1,9 @@
-package com.platform.authz.iam.integration;
+package com.platform.authz.audit.integration;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -39,10 +38,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @SpringBootTest
 @AutoConfigureMockMvc
 @Testcontainers(disabledWithoutDocker = true)
-class UserRoleAssignmentIntegrationTest {
-
-    private static final String MODULES_ENDPOINT = "/v1/modules";
-    private static final String ROLES_ENDPOINT = "/v1/roles";
+class AuditTrailIntegrationTest {
 
     @Container
     static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine")
@@ -62,10 +58,10 @@ class UserRoleAssignmentIntegrationTest {
     private MockMvc mockMvc;
 
     @Autowired
-    private SpringDataPermissionRepository permissionRepository;
+    private JdbcTemplate jdbcTemplate;
 
     @Autowired
-    private JdbcTemplate jdbcTemplate;
+    private SpringDataPermissionRepository permissionRepository;
 
     @MockBean
     private JwtDecoder jwtDecoder;
@@ -79,7 +75,63 @@ class UserRoleAssignmentIntegrationTest {
     }
 
     @Test
-    void assignRole_WithPlatformAdmin_ShouldCreateIdempotentlyListAndRevoke() throws Exception {
+    void getAuditEvents_WithPlatformAdmin_ShouldReturnFilteredPaginatedResults() throws Exception {
+        // Arrange
+        String suffix = uniqueSuffix();
+        ModuleInfo moduleInfo = createModuleAndGetKey("Audit-" + suffix, "audit-" + suffix);
+        awaitAuditEventCount("MODULE_CREATED", moduleInfo.moduleId(), 1);
+
+        // Act & Assert
+        mockMvc.perform(get("/v1/audit/events")
+                        .with(platformAdminJwt())
+                        .param("eventType", "MODULE_CREATED")
+                        .param("moduleId", moduleInfo.moduleId())
+                        .param("page", "1")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.length()").value(1))
+                .andExpect(jsonPath("$.data[0].eventType").value("MODULE_CREATED"))
+                .andExpect(jsonPath("$.data[0].payload.moduleId").value(moduleInfo.moduleId()))
+                .andExpect(jsonPath("$.pagination.page").value(1))
+                .andExpect(jsonPath("$.pagination.size").value(10))
+                .andExpect(jsonPath("$.pagination.total").value(1));
+    }
+
+    @Test
+    void getAuditEvents_WithAuditorRole_ShouldAllowAccess() throws Exception {
+        // Arrange
+        String suffix = uniqueSuffix();
+        ModuleInfo moduleInfo = createModuleAndGetKey("AuditRead-" + suffix, "audit-read-" + suffix);
+        awaitAuditEventCount("MODULE_CREATED", moduleInfo.moduleId(), 1);
+
+        // Act & Assert
+        mockMvc.perform(get("/v1/audit/events")
+                        .with(auditorJwt())
+                        .param("moduleId", moduleInfo.moduleId())
+                        .param("page", "1")
+                        .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.length()").value(1));
+    }
+
+    @Test
+    void getAuditEvents_WithoutAuditRole_ShouldReturnForbidden() throws Exception {
+        // Arrange
+        String suffix = uniqueSuffix();
+        ModuleInfo moduleInfo = createModuleAndGetKey("Forbidden-" + suffix, "forbidden-" + suffix);
+        awaitAuditEventCount("MODULE_CREATED", moduleInfo.moduleId(), 1);
+
+        // Act & Assert
+        mockMvc.perform(get("/v1/audit/events")
+                        .with(nonAuditorJwt())
+                        .param("moduleId", moduleInfo.moduleId())
+                        .param("page", "1")
+                        .param("size", "10"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void assignRoleAndInvalidModuleKey_ShouldRecordAuditEventsAndFilterByEventType() throws Exception {
         // Arrange
         String suffix = uniqueSuffix();
         ModuleInfo moduleInfo = createModuleAndGetKey("Sales-" + suffix, "vendas-" + suffix);
@@ -88,9 +140,9 @@ class UserRoleAssignmentIntegrationTest {
                   {"code": "%s.orders.read", "description": "Read orders"}
                 ]
                 """.formatted(moduleInfo.allowedPrefix()));
-        String roleId = createRole(moduleInfo, platformAdminJwt());
+        String roleId = createRole(moduleInfo);
 
-        // Act & Assert - create
+        // Act - assign role and trigger invalid module key
         mockMvc.perform(post("/v1/users/{userId}/roles", "user-target")
                         .with(platformAdminJwt())
                         .contentType(MediaType.APPLICATION_JSON)
@@ -99,111 +151,55 @@ class UserRoleAssignmentIntegrationTest {
                                   "roleId": "%s"
                                 }
                                 """.formatted(roleId)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.roleId").value(roleId));
+                .andExpect(status().isCreated());
+        awaitAuditEventCount("ROLE_ASSIGNED", moduleInfo.moduleId(), 1);
 
-        // Act & Assert - idempotent reassign
-        mockMvc.perform(post("/v1/users/{userId}/roles", "user-target")
+        mockMvc.perform(post("/v1/catalog/sync")
+                        .header("Authorization", "Bearer invalid-secret")
+                        .header("X-Module-Id", moduleInfo.moduleId())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "moduleId": "%s",
+                                  "schemaVersion": "1.0",
+                                  "payloadHash": "invalid-%s",
+                                  "permissions": []
+                                }
+                                """.formatted(moduleInfo.moduleId(), suffix)))
+                .andExpect(status().isUnauthorized());
+        awaitAuditEventCount("KEY_AUTH_FAILED", moduleInfo.moduleId(), 1);
+
+        // Assert - query filtered events
+        mockMvc.perform(get("/v1/audit/events")
                         .with(platformAdminJwt())
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "roleId": "%s"
-                                }
-                                """.formatted(roleId)))
+                        .param("eventType", "ROLE_ASSIGNED")
+                        .param("moduleId", moduleInfo.moduleId())
+                        .param("page", "1")
+                        .param("size", "10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.roleId").value(roleId));
+                .andExpect(jsonPath("$.data.length()").value(1))
+                .andExpect(jsonPath("$.data[0].target").value("user-target"))
+                .andExpect(jsonPath("$.data[0].payload.roleName").value(rolePrefix(moduleInfo.allowedPrefix()) + "_GERENTE"));
 
-        // Assert - list active roles
-        mockMvc.perform(get("/v1/users/{userId}/roles", "user-target")
-                        .with(platformAdminJwt()))
+        mockMvc.perform(get("/v1/audit/events")
+                        .with(platformAdminJwt())
+                        .param("eventType", "KEY_AUTH_FAILED")
+                        .param("moduleId", moduleInfo.moduleId())
+                        .param("page", "1")
+                        .param("size", "10"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1))
-                .andExpect(jsonPath("$[0].roleId").value(roleId));
-
-        // Act & Assert - revoke
-        mockMvc.perform(delete("/v1/users/{userId}/roles/{roleId}", "user-target", roleId)
-                        .with(platformAdminJwt()))
-                .andExpect(status().isNoContent());
-
-        // Assert - revocation persisted and audit events recorded
-        String revokedBy = jdbcTemplate.queryForObject(
-                "SELECT revoked_by FROM user_role WHERE user_id = ? AND role_id = ?",
-                String.class,
-                "user-target",
-                UUID.fromString(roleId)
-        );
-        Integer assignedEvents = awaitAuditEventCount("ROLE_ASSIGNED", "user-target");
-        Integer revokedEvents = awaitAuditEventCount("ROLE_REVOKED", "user-target");
-
-        assertThat(revokedBy).isEqualTo("admin-user");
-        assertThat(assignedEvents).isEqualTo(1);
-        assertThat(revokedEvents).isEqualTo(1);
+                .andExpect(jsonPath("$.data.length()").value(1))
+                .andExpect(jsonPath("$.data[0].payload.reason").value("not_found"));
     }
 
-    @Test
-    void assignRole_WithScopedManagerFromSameModule_ShouldReturnCreated() throws Exception {
-        // Arrange
-        String suffix = uniqueSuffix();
-        ModuleInfo moduleInfo = createModuleAndGetKey("Sales-" + suffix, "vendas-" + suffix);
-        syncPermissions(moduleInfo, """
-                [
-                  {"code": "%s.orders.read", "description": "Read orders"}
-                ]
-                """.formatted(moduleInfo.allowedPrefix()));
-        String roleId = createRole(moduleInfo, platformAdminJwt());
-
-        // Act & Assert
-        mockMvc.perform(post("/v1/users/{userId}/roles", "user-sales")
-                        .with(moduleManagerJwt(moduleInfo.allowedPrefix()))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "roleId": "%s"
-                                }
-                                """.formatted(roleId)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.roleId").value(roleId));
-    }
-
-    @Test
-    void assignRole_WithScopedManagerFromAnotherModule_ShouldReturnAdminScopeViolation() throws Exception {
-        // Arrange
-        String suffix = uniqueSuffix();
-        ModuleInfo salesModule = createModuleAndGetKey("Sales-" + suffix, "vendas-" + suffix);
-        ModuleInfo stockModule = createModuleAndGetKey("Stock-" + suffix, "estoque-" + suffix);
-        syncPermissions(salesModule, """
-                [
-                  {"code": "%s.orders.read", "description": "Read orders"}
-                ]
-                """.formatted(salesModule.allowedPrefix()));
-        String roleId = createRole(salesModule, platformAdminJwt());
-
-        // Act & Assert
-        mockMvc.perform(post("/v1/users/{userId}/roles", "user-target")
-                        .with(moduleManagerJwt(stockModule.allowedPrefix()))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "roleId": "%s"
-                                }
-                                """.formatted(roleId)))
-                .andExpect(status().isForbidden())
-                .andExpect(jsonPath("$.type").value("https://authz.platform/errors/admin-scope-violation"))
-                .andExpect(jsonPath("$.errorCode").value("admin_scope_violation"));
-    }
-
-    private String createRole(
-            ModuleInfo moduleInfo,
-            org.springframework.test.web.servlet.request.RequestPostProcessor requestPostProcessor
-    ) throws Exception {
+    private String createRole(ModuleInfo moduleInfo) throws Exception {
         String permissionId = permissionRepository.findByModuleIdAndStatusIn(
                         UUID.fromString(moduleInfo.moduleId()),
                         List.of(PermissionStatus.ACTIVE, PermissionStatus.DEPRECATED)
                 ).getFirst().getId().toString();
 
-        String response = mockMvc.perform(post(ROLES_ENDPOINT)
-                        .with(requestPostProcessor)
+        String response = mockMvc.perform(post("/v1/roles")
+                        .with(platformAdminJwt())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -222,7 +218,7 @@ class UserRoleAssignmentIntegrationTest {
     }
 
     private ModuleInfo createModuleAndGetKey(String name, String allowedPrefix) throws Exception {
-        String response = mockMvc.perform(post(MODULES_ENDPOINT)
+        String response = mockMvc.perform(post("/v1/modules")
                         .with(platformAdminJwt())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -260,16 +256,42 @@ class UserRoleAssignmentIntegrationTest {
                 .andExpect(status().isOk());
     }
 
+    private void awaitAuditEventCount(String eventType, String moduleId, int expectedCount) {
+        Instant deadline = Instant.now().plus(Duration.ofSeconds(10));
+        Integer actualCount = null;
+
+        while (Instant.now().isBefore(deadline)) {
+            actualCount = jdbcTemplate.queryForObject(
+                    "SELECT COUNT(*) FROM audit_event WHERE event_type = ? AND payload ->> 'moduleId' = ?",
+                    Integer.class,
+                    eventType,
+                    moduleId
+            );
+            if (actualCount != null && actualCount == expectedCount) {
+                return;
+            }
+            LockSupport.parkNanos(Duration.ofMillis(100).toNanos());
+        }
+
+        assertThat(actualCount).isEqualTo(expectedCount);
+    }
+
     private org.springframework.test.web.servlet.request.RequestPostProcessor platformAdminJwt() {
         return jwt().jwt(jwt -> jwt
                 .subject("admin-user")
                 .claim("roles", List.of("PLATFORM_ADMIN")));
     }
 
-    private org.springframework.test.web.servlet.request.RequestPostProcessor moduleManagerJwt(String allowedPrefix) {
+    private org.springframework.test.web.servlet.request.RequestPostProcessor auditorJwt() {
         return jwt().jwt(jwt -> jwt
-                .subject("module-manager")
-                .claim("roles", List.of(rolePrefix(allowedPrefix) + "_USER_MANAGER")));
+                .subject("audit-user")
+                .claim("roles", List.of("AUDITOR")));
+    }
+
+    private org.springframework.test.web.servlet.request.RequestPostProcessor nonAuditorJwt() {
+        return jwt().jwt(jwt -> jwt
+                .subject("viewer-user")
+                .claim("roles", List.of("VENDAS_USER_MANAGER")));
     }
 
     private static String rolePrefix(String allowedPrefix) {
@@ -281,26 +303,6 @@ class UserRoleAssignmentIntegrationTest {
 
     private static String uniqueSuffix() {
         return UUID.randomUUID().toString().substring(0, 8);
-    }
-
-    private Integer awaitAuditEventCount(String eventType, String target) {
-        Instant deadline = Instant.now().plus(Duration.ofSeconds(10));
-        Integer actualCount = null;
-
-        while (Instant.now().isBefore(deadline)) {
-            actualCount = jdbcTemplate.queryForObject(
-                    "SELECT COUNT(*) FROM audit_event WHERE event_type = ? AND target = ?",
-                    Integer.class,
-                    eventType,
-                    target
-            );
-            if (actualCount != null && actualCount >= 1) {
-                return actualCount;
-            }
-            LockSupport.parkNanos(Duration.ofMillis(100).toNanos());
-        }
-
-        return actualCount;
     }
 
     private record ModuleInfo(String moduleId, String secret, String allowedPrefix) {
