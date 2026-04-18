@@ -73,7 +73,7 @@ CI/CD GitHub Actions, publicação dos SDKs em GitHub Packages, suíte E2E Playw
 - [x] 15.0 SDK Java: AuthzClient + cache por requisição + auto-config
 - [x] 16.0 SDK Java: anotação `@HasPermission` + Aspect AOP
 - [x] 17.0 SDK Java: SelfRegistrationRunner + ReadinessGate + HeartbeatScheduler
-- [ ] 18.0 Demo MS Java (vendas): endpoints protegidos + permissions.yaml
+- [X] 18.0 Demo MS Java (vendas): endpoints protegidos + permissions.yaml
 - [ ] 19.0 SDK .NET: IAuthzClient + RequestPermissionCache + DI extensions
 - [ ] 20.0 SDK .NET: `[HasPermission]` attribute + AuthorizationHandler
 - [ ] 21.0 SDK .NET: SelfRegistrationHostedService + HeartbeatHostedService

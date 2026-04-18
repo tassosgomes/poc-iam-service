@@ -45,7 +45,7 @@ class Argon2KeyHasherTest {
         Supplier<Argon2Advanced> argon2Supplier = () -> argon2;
         Argon2KeyHasher keyHasher = new Argon2KeyHasher(argon2Supplier);
 
-        when(argon2.verify("$argon2id$encoded", "plain-secret".toCharArray())).thenReturn(true);
+        when(argon2.verify(eq("$argon2id$encoded"), any(char[].class))).thenReturn(true);
 
         // Act
         boolean result = keyHasher.matches("plain-secret", "$argon2id$encoded");

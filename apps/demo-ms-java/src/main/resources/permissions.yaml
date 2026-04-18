@@ -1,0 +1,11 @@
+schemaVersion: "1.0"
+moduleId: vendas
+permissions:
+  - code: vendas.orders.view
+    description: "Visualizar pedidos de venda"
+  - code: vendas.orders.create
+    description: "Criar pedidos de venda"
+  - code: vendas.orders.cancel
+    description: "Cancelar pedido em rascunho"
+  - code: vendas.can_manage_users
+    description: "Gerenciar usuários do módulo vendas"

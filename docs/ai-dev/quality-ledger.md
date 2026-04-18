@@ -246,6 +246,61 @@ Sugestão de melhoria no:
 - Template de Task: Nenhuma.
 - Skill: Nenhuma.
 
+## [2026-04-18] | PRD: prd-authz-platform | Task: 18.0
+
+Modelo utilizado:
+GPT-5.4 + tester subagent
+
+### Problemas Identificados
+
+Zero Defects Identified
+Iterações até estabilização: 2
+
+### Resumo da Tarefa
+
+Total de Problemas: 0
+Categoria Técnica mais frequente: N/A
+Origem mais frequente: N/A
+Indício de fragilidade estrutural? (Sim/Não) Não
+Sugestão de melhoria no:
+- PRD: Nenhuma.
+- TechSpec: Nenhuma.
+- Template de Task: Nenhuma.
+- Skill: Nenhuma.
+
+## [2026-04-18] | PRD: prd-authz-platform | Task: 18.0
+
+Modelo utilizado:
+GPT-5.4
+
+### Problemas Identificados
+
+1. Categoria Técnica: Erro de integração
+   Severidade: Alta
+   Fase Detectada: Revisão
+   Origem Provável: Limitação do modelo
+   Necessitou Reimplementação Significativa? Não
+   Descrição: A aplicação `demo-ms-java` falha no bootstrap porque `apps/demo-ms-java/src/main/resources/application.yml` inclui `authzRegistrationReadinessHealthIndicator` no grupo `readiness`, mas esse contributor não existe com esse id no Actuator. O serviço não sobe, quebrando o demo via docker-compose e impedindo o atendimento prático de RF-14.
+
+2. Categoria Técnica: Teste inadequado
+   Severidade: Média
+   Fase Detectada: Revisão
+   Origem Provável: Limitação do modelo
+   Necessitou Reimplementação Significativa? Não
+   Descrição: Os testes de `apps/demo-ms-java` desabilitam o SDK (`authz.enabled=false` e `authz.registration.enabled=false` em `src/test/resources/application.yml`), então não validam `@HasPermission` no app consumidor nem o cenário explícito de `403 sem permissão` exigido pela task.
+
+### Resumo da Tarefa
+
+Total de Problemas: 2
+Categoria Técnica mais frequente: Erro de integração
+Origem mais frequente: Limitação do modelo
+Indício de fragilidade estrutural? (Sim/Não) Não
+Sugestão de melhoria no:
+- PRD: Nenhuma.
+- TechSpec: Nenhuma.
+- Template de Task: Explicitar em tasks de demo que a validação final deve incluir smoke test de startup do artefato e cenários mínimos 401/403/public endpoint no app consumidor, não apenas testes slice.
+- Skill: Incluir checagem explícita de compatibilidade entre `HealthIndicator` customizado e ids usados em `management.endpoint.health.group.*.include`.
+
 ## [2026-04-17] | PRD: prd-authz-platform | Task: 4.0
 
 Modelo utilizado:

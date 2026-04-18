@@ -156,28 +156,31 @@ services:
   # ========================================
   # Demo MS Java (Sales Service)
   # ========================================
-  # demo-ms-java:
-  #   build:
-  #     context: ../../apps/demo-ms-java
-  #     dockerfile: Dockerfile
-  #   container_name: authz-demo-ms-java
-  #   environment:
-  #     SPRING_PROFILES_ACTIVE: dev
-  #     AUTHZ_SERVICE_BASE_URL: http://authz-service:8081
-  #     AUTHZ_MODULE_KEY: ${AUTHZ_MODULE_KEY_VENDAS}
-  #   ports:
-  #     - "8082:8082"
-  #   depends_on:
-  #     authz-service:
-  #       condition: service_healthy
-  #   healthcheck:
-  #     test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8082/actuator/health/readiness"]
-  #     interval: 10s
-  #     timeout: 5s
-  #     retries: 10
-  #     start_period: 30s
-  #   networks:
-  #     - authz-network
+  demo-ms-java:
+    build:
+      context: ../../
+      dockerfile: apps/demo-ms-java/Dockerfile
+    container_name: authz-demo-ms-java
+    environment:
+      SPRING_PROFILES_ACTIVE: dev
+      AUTHZ_SERVICE_BASE_URL: http://authz-service:8081
+      AUTHZ_MODULE_KEY: ${AUTHZ_MODULE_KEY_VENDAS}
+      CYBERARK_ISSUER: http://cyberark-mock:8080/default
+    ports:
+      - "8082:8082"
+    depends_on:
+      authz-service:
+        condition: service_healthy
+      cyberark-mock:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8082/actuator/health/readiness"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - authz-network
 
   # ========================================
   # Demo MS .NET (Stock Service)

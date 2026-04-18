@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 parallelizable: false
 blocked_by: [16.0, 17.0]
 ---
@@ -56,13 +56,13 @@ MS demo de Vendas em Java consumindo o SDK Java. Expõe endpoints protegidos por
 
 ## Subtarefas
 
-- [ ] 18.1 `pom.xml` + bootstrap
-- [ ] 18.2 `permissions.yaml`
-- [ ] 18.3 `DiscoveryController` (lê classpath, retorna JSON)
-- [ ] 18.4 `OrdersController` (mock in-memory de pedidos)
-- [ ] 18.5 `SecurityConfig` (resource server JWT)
-- [ ] 18.6 Dockerfile + integração docker-compose
-- [ ] 18.7 Testes controller (mock auth)
+- [x] 18.1 `pom.xml` + bootstrap
+- [x] 18.2 `permissions.yaml`
+- [x] 18.3 `DiscoveryController` (lê classpath, retorna JSON)
+- [x] 18.4 `OrdersController` (mock in-memory de pedidos)
+- [x] 18.5 `SecurityConfig` (resource server JWT)
+- [x] 18.6 Dockerfile + integração docker-compose
+- [x] 18.7 Testes controller (mock auth)
 
 ## Sequenciamento
 
@@ -104,9 +104,18 @@ public class OrdersController {
 
 ## Critérios de Sucesso (Verificáveis)
 
-- [ ] Testes passam
-- [ ] `docker-compose up demo-ms-java` sobe; logs mostram `authz.registration.attempt sequence=1 ... result=success`
-- [ ] `curl /.well-known/permissions` retorna 4 permissões
-- [ ] `curl /orders` sem JWT → 401
-- [ ] `curl /orders` com JWT user-vendas-op + role atribuída via PAP → 200
-- [ ] Sem permissão → 403
+- [x] Testes passam
+- [x] `docker-compose up demo-ms-java` sobe; logs mostram `authz.registration.attempt sequence=1 ... result=success`
+- [x] `curl /.well-known/permissions` retorna 4 permissões
+- [x] `curl /orders` sem JWT → 401
+- [x] `curl /orders` com JWT user-vendas-op + role atribuída via PAP → 200
+- [x] Sem permissão → 403
+
+## Conclusão
+
+- [x] 18.0 Demo MS Java (vendas) — endpoints protegidos + permissions.yaml ✅ CONCLUÍDA
+  - [x] 18.1 Implementação completada
+  - [x] 18.2 Definição da tarefa, PRD e tech spec validados
+  - [x] 18.3 Análise de regras e conformidade verificadas
+  - [x] 18.4 Revisão de código completada
+  - [x] 18.5 Pronto para deploy
