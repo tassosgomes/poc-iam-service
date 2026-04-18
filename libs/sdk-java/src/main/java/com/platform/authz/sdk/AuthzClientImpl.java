@@ -118,23 +118,33 @@ public class AuthzClientImpl implements AuthzClient {
         Objects.requireNonNull(request, "request must not be null");
         LOGGER.debug("Syncing catalog for moduleId={}", request.moduleId());
 
-        SyncResult response = executeWithResilience(() -> webClient.post()
-                .uri("/v1/catalog/sync")
-                .headers(this::applyModuleSyncHeaders)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(request)
-                .retrieve()
-                .onStatus(HttpStatusCode::isError, clientResponse ->
-                        clientResponse.bodyToMono(String.class)
-                                .defaultIfEmpty("")
-                                .flatMap(body -> Mono.error(new AuthzClientException(
-                                        "Failed to sync catalog for moduleId=" + request.moduleId()
-                                                + " status=" + clientResponse.statusCode().value(),
-                                        clientResponse.statusCode().value()
-                                )))
-                )
-                .bodyToMono(SyncResult.class)
-                .block());
+        SyncResult response;
+        try {
+            response = webClient.post()
+                    .uri("/v1/catalog/sync")
+                    .headers(this::applyModuleSyncHeaders)
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(request)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError, clientResponse ->
+                            clientResponse.bodyToMono(String.class)
+                                    .defaultIfEmpty("")
+                                    .flatMap(body -> Mono.error(new AuthzClientException(
+                                            "Failed to sync catalog for moduleId=" + request.moduleId()
+                                                    + " status=" + clientResponse.statusCode().value(),
+                                            clientResponse.statusCode().value()
+                                    )))
+                    )
+                    .bodyToMono(SyncResult.class)
+                    .block();
+        } catch (AuthzClientException exception) {
+            throw exception;
+        } catch (Exception exception) {
+            throw new AuthzClientException(
+                    "AuthZ catalog sync call failed for moduleId=" + request.moduleId(),
+                    exception
+            );
+        }
 
         if (response == null) {
             throw new AuthzClientException(

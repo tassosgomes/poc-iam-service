@@ -9,6 +9,11 @@ import com.platform.authz.sdk.aop.HasPermissionAspect;
 import com.platform.authz.sdk.aop.PermissionMatcher;
 import com.platform.authz.sdk.cache.RequestScopedPermissionCache;
 import com.platform.authz.sdk.exception.AuthzClientException;
+import com.platform.authz.sdk.registration.HeartbeatScheduler;
+import com.platform.authz.sdk.registration.PermissionsYamlLoader;
+import com.platform.authz.sdk.registration.ReadinessGate;
+import com.platform.authz.sdk.registration.RegistrationProperties;
+import com.platform.authz.sdk.registration.SelfRegistrationRunner;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CallNotPermittedException;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
@@ -28,6 +33,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Scope;
 import org.springframework.context.annotation.ScopedProxyMode;
+import org.springframework.core.io.ResourceLoader;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.netty.http.client.HttpClient;
@@ -41,7 +48,8 @@ import reactor.netty.http.client.HttpClient;
  * <p>Activated by default; disable with {@code authz.enabled=false}.
  */
 @AutoConfiguration
-@EnableConfigurationProperties(AuthzProperties.class)
+@EnableScheduling
+@EnableConfigurationProperties({AuthzProperties.class, RegistrationProperties.class})
 @ConditionalOnProperty(prefix = "authz", name = "enabled", matchIfMissing = true)
 public class AuthzAutoConfiguration {
 
@@ -109,6 +117,42 @@ public class AuthzAutoConfiguration {
             PermissionMatcher permissionMatcher
     ) {
         return new HasPermissionAspect(requestScopedPermissionCache, permissionMatcher);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(PermissionsYamlLoader.class)
+    @ConditionalOnProperty(prefix = "authz.registration", name = "enabled", matchIfMissing = true)
+    public PermissionsYamlLoader permissionsYamlLoader(
+            ResourceLoader resourceLoader,
+            RegistrationProperties registrationProperties
+    ) {
+        return new PermissionsYamlLoader(resourceLoader, registrationProperties);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(ReadinessGate.class)
+    @ConditionalOnProperty(prefix = "authz.registration", name = "enabled", matchIfMissing = true)
+    public ReadinessGate authzRegistrationReadinessHealthIndicator() {
+        return new ReadinessGate();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(SelfRegistrationRunner.class)
+    @ConditionalOnProperty(prefix = "authz.registration", name = "enabled", matchIfMissing = true)
+    public SelfRegistrationRunner selfRegistrationRunner(
+            AuthzClient authzClient,
+            PermissionsYamlLoader permissionsYamlLoader,
+            ReadinessGate readinessGate,
+            RetryRegistry retryRegistry
+    ) {
+        return new SelfRegistrationRunner(authzClient, permissionsYamlLoader, readinessGate, retryRegistry);
+    }
+
+    @Bean
+    @ConditionalOnMissingBean(HeartbeatScheduler.class)
+    @ConditionalOnProperty(prefix = "authz.registration", name = "enabled", matchIfMissing = true)
+    public HeartbeatScheduler heartbeatScheduler(SelfRegistrationRunner selfRegistrationRunner) {
+        return new HeartbeatScheduler(selfRegistrationRunner);
     }
 
     @Bean
