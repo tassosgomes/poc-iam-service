@@ -57,6 +57,13 @@ public class JpaModuleRepository implements ModuleRepository {
     }
 
     @Override
+    public List<Module> findByLastHeartbeatAtBefore(Instant threshold) {
+        return springDataModuleRepository.findByLastHeartbeatAtBeforeOrderByNameAsc(threshold).stream()
+                .map(moduleEntityMapper::toDomain)
+                .toList();
+    }
+
+    @Override
     public List<Module> findAll() {
         return springDataModuleRepository.findAllByOrderByNameAsc().stream()
                 .map(moduleEntityMapper::toDomain)

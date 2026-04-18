@@ -19,5 +19,7 @@ public interface ModuleRepository {
 
     void updateLastHeartbeatAt(UUID moduleId, Instant lastHeartbeatAt);
 
+    List<Module> findByLastHeartbeatAtBefore(Instant threshold);
+
     List<Module> findAll();
 }

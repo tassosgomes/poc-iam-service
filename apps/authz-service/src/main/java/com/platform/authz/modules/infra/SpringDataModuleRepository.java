@@ -26,4 +26,6 @@ public interface SpringDataModuleRepository extends JpaRepository<ModuleEntity, 
     @Modifying
     @Query("UPDATE ModuleEntity m SET m.lastHeartbeatAt = :lastHeartbeatAt WHERE m.id = :id")
     void updateLastHeartbeatAt(@Param("id") UUID id, @Param("lastHeartbeatAt") Instant lastHeartbeatAt);
+
+    List<ModuleEntity> findByLastHeartbeatAtBeforeOrderByNameAsc(Instant threshold);
 }

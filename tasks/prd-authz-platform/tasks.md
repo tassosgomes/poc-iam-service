@@ -69,7 +69,7 @@ CI/CD GitHub Actions, publicação dos SDKs em GitHub Packages, suíte E2E Playw
 - [X] 11.0 Módulo `iam`: bulk fetch `/v1/users/{id}/permissions` com cache Caffeine
 - [X] 12.0 Módulo `authz`: endpoint `POST /v1/authz/check`
 - [x] 13.0 Módulo `audit`: persistência, integração @Async em handlers e endpoint de consulta
-- [ ] 14.0 Lifecycle: StaleModuleDetector e deprecation de permissões (RF-12 + RF-16 stale)
+- [x] 14.0 Lifecycle: StaleModuleDetector e deprecation de permissões (RF-12 + RF-16 stale)
 - [ ] 15.0 SDK Java: AuthzClient + cache por requisição + auto-config
 - [ ] 16.0 SDK Java: anotação `@HasPermission` + Aspect AOP
 - [ ] 17.0 SDK Java: SelfRegistrationRunner + ReadinessGate + HeartbeatScheduler

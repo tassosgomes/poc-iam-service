@@ -81,6 +81,10 @@ authz:
   cache:
     user-permissions-ttl: ${AUTHZ_CACHE_USER_PERMISSIONS_TTL:10m}
     user-permissions-max-size: ${AUTHZ_CACHE_USER_PERMISSIONS_MAX_SIZE:10000}
+  lifecycle:
+    stale-after: ${AUTHZ_LIFECYCLE_STALE_AFTER:7d}
+    sunset-cron: "${AUTHZ_LIFECYCLE_SUNSET_CRON:0 0 3 * * *}"
+    detector-rate: ${AUTHZ_LIFECYCLE_DETECTOR_RATE:1h}
   security:
     jwt-ttl: ${AUTHZ_SECURITY_JWT_TTL:15m}
 

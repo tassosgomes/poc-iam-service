@@ -583,6 +583,45 @@ class SyncCatalogHandlerTest {
         assertThat(result.deprecated()).isEqualTo(1); // vendas.orders.delete
     }
 
+    @Test
+    void handle_WithStalePermissionPresentInPayload_ShouldReactivatePermission() {
+        // Arrange
+        Permission stalePermission = new Permission(
+                UUID.randomUUID(), MODULE_ID, "vendas.orders.create",
+                "Create orders", PermissionStatus.STALE, null,
+                NOW.minus(Duration.ofDays(10)), NOW.minus(Duration.ofDays(2))
+        );
+
+        SyncCatalogCommand command = new SyncCatalogCommand(
+                MODULE_ID.toString(),
+                "1.0",
+                "hash-stale-reactivation",
+                List.of(new SyncCatalogCommand.PermissionEntry("vendas.orders.create", "Create orders"))
+        );
+
+        when(moduleRepository.findByIdForUpdate(MODULE_ID)).thenReturn(Optional.of(testModule()));
+        when(syncEventRepository.findLatestByModuleId(MODULE_ID)).thenReturn(Optional.empty());
+        when(permissionRepository.findByModuleIdAndStatusIn(eq(MODULE_ID), any())).thenReturn(List.of(stalePermission));
+        when(permissionRepository.saveAll(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<List<Permission>> captor = ArgumentCaptor.forClass(List.class);
+
+        // Act
+        SyncCatalogResult result = handler.handle(command, moduleContext());
+
+        // Assert
+        assertThat(result.changed()).isTrue();
+        assertThat(result.added()).isEqualTo(1);
+        assertThat(result.updated()).isZero();
+        assertThat(result.deprecated()).isZero();
+
+        verify(permissionRepository).saveAll(captor.capture());
+        Permission reactivated = captor.getValue().getFirst();
+        assertThat(reactivated.status()).isEqualTo(PermissionStatus.ACTIVE);
+        assertThat(reactivated.sunsetAt()).isNull();
+    }
+
     // --- Fix 6: Concurrency test ---
 
     @Test

@@ -178,7 +178,7 @@ public class SyncCatalogHandler {
         // Load existing permissions (ACTIVE + DEPRECATED)
         List<Permission> existing = permissionRepository.findByModuleIdAndStatusIn(
                 moduleId,
-                List.of(PermissionStatus.ACTIVE, PermissionStatus.DEPRECATED)
+                List.of(PermissionStatus.ACTIVE, PermissionStatus.DEPRECATED, PermissionStatus.STALE)
         );
 
         Map<String, Permission> existingByCode = existing.stream()
@@ -205,7 +205,8 @@ public class SyncCatalogHandler {
 
                 // Reactivate if DEPRECATED
                 boolean reactivated = false;
-                if (existingPermission.status() == PermissionStatus.DEPRECATED) {
+                if (existingPermission.status() == PermissionStatus.DEPRECATED
+                        || existingPermission.status() == PermissionStatus.STALE) {
                     existingPermission.reactivate(now);
                     changed = true;
                     reactivated = true;
@@ -228,7 +229,8 @@ public class SyncCatalogHandler {
 
         // Mark removed permissions as DEPRECATED
         for (Permission existingPermission : existing) {
-            if (existingPermission.status() == PermissionStatus.ACTIVE
+            if ((existingPermission.status() == PermissionStatus.ACTIVE
+                    || existingPermission.status() == PermissionStatus.STALE)
                     && !incomingByCode.containsKey(existingPermission.code())) {
                 existingPermission.deprecate(now.plus(SUNSET_PERIOD), now);
                 toSave.add(existingPermission);

@@ -3,6 +3,7 @@ package com.platform.authz.catalog.infra;
 import com.platform.authz.catalog.domain.Permission;
 import com.platform.authz.catalog.domain.PermissionRepository;
 import com.platform.authz.catalog.domain.PermissionStatus;
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -40,6 +41,18 @@ public class JpaPermissionRepository implements PermissionRepository {
         return springDataPermissionRepository.findByModuleIdAndStatusIn(moduleId, statuses).stream()
                 .map(this::toDomain)
                 .toList();
+    }
+
+    @Override
+    public List<Permission> findByStatusAndSunsetAtBefore(PermissionStatus status, Instant sunsetAt) {
+        return springDataPermissionRepository.findByStatusAndSunsetAtBefore(status, sunsetAt).stream()
+                .map(this::toDomain)
+                .toList();
+    }
+
+    @Override
+    public long countByStatus(PermissionStatus status) {
+        return springDataPermissionRepository.countByStatus(status);
     }
 
     @Override

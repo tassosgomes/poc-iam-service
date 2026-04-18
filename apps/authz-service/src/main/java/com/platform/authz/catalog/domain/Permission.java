@@ -70,6 +70,30 @@ public final class Permission {
         this.updatedAt = now;
     }
 
+    public boolean markStale(Instant now) {
+        Objects.requireNonNull(now, "now must not be null");
+
+        if (status == PermissionStatus.STALE || status == PermissionStatus.REMOVED) {
+            return false;
+        }
+
+        this.status = PermissionStatus.STALE;
+        this.updatedAt = now;
+        return true;
+    }
+
+    public boolean remove(Instant now) {
+        Objects.requireNonNull(now, "now must not be null");
+
+        if (status == PermissionStatus.REMOVED) {
+            return false;
+        }
+
+        this.status = PermissionStatus.REMOVED;
+        this.updatedAt = now;
+        return true;
+    }
+
     public UUID id() {
         return id;
     }
